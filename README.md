@@ -53,8 +53,9 @@ python main.py
  * Purge - Clears queue count for delay reporting
  * DROP (Callsign) - Removes cid from queue counter.
 
-ARMT commands
+ARMT commands (ATL only)
  * countproposals - Counts all the aircraft on the ground and organizes it based on filed departure gate.
  * ALL north/center/south - Amends the departure split.
  * {departure} OR {gate} north/center/south - Amends the departure split (to determine queue count).
  * worst queue or queue count - Generates length of line for departure if all aircraft on the ground were holding short of their runway, according to the departure split.
+ * FTD - enables/disables runway 10/28
