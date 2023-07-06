@@ -56,17 +56,45 @@ depCodes = {
     "S6":"HAALO"
 }
 
+proposals = {
+    "EAONE":0,
+    "PLMMR":0,
+    "JACCC":0,
+    "EATWO":0,
+    "PHIIL":0,
+    "GAIRY":0,
+    "WEONE":0,
+    "POUNC":0,
+    "KAJIN":0,
+    "WETWO":0,
+    "NASSA":0,
+    "CUTTN":0,
+    "NOONE":0,
+    "PENCL":0,
+    "VARNM":0,
+    "NOTWO":0,
+    "PADGT":0,
+    "SMKEY":0,
+    "SOONE":0,
+    "SMLTZ":0,
+    "VRSTY":0,
+    "SOTWO":0,
+    "BANNG":0,
+    "HAALO":0
+}
+
 
 #COMMAND STRUCTURE IS ALL or DEPARTURE NORTH/CENTER/SOUTH
 
 class AirspaceManagement:
-    def __init__(self, control_area) -> None:
+    def __init__(self, control_area, data_collector: DataCollector) -> None:
         self.currentSplit = currentSplit
         self.gateFixes = gateFixes
         self.normalSplit = normalSplit
         self.controlArea = control_area
         self.FTD = False
-        self.datacollector = DataCollector
+        self.datacollector = data_collector
+        self.proposals = proposals
     
     def getSplit(self) -> str:
         time.sleep(.5)
@@ -91,10 +119,11 @@ class AirspaceManagement:
                 self.amendSplit(splitPosition)
             elif splitPosition[:6] == "normal":
                 self.amendSplit("normal")
-            elif splitPosition == "countproposals":
-                self.countProposals
+            elif splitPosition[:13] == "countproposal":
+                print("yo")
+                self.countProposals()
             elif splitPosition == "worstqueue":
-                self.worstQueue
+                self.worstQueue()
 
     def amendSplit(self, input):
         input = input.replace(" ","")
@@ -134,28 +163,60 @@ class AirspaceManagement:
         except:
             print("huh?")
     
+
+    
     def countProposals(self):
+        proposals = self.countProposalsMath()
+        print(proposals)
+
+
+    def countProposalsMath(self):
         aircraft = {}
+        proposedDeps = {}
+
+        for i in self.proposals:
+            self.proposals[i] = 0
+        
         json_File = self.datacollector.get_json()
-        for i in json_File:
-            print(i)
-        connected_pilots = json_File['pilots']
-        for i in range(len(connected_pilots)):
+        json_File = json_File['pilots']
+   #    json_File = self.datacollector.get_callsign_list()
+        print("ya mom")
+        for i in range(len(json_File)):
             # pilot at index i information
-            current_pilot = connected_pilots[i]
-            lat_long_tuple = (current_pilot['latitude'], current_pilot['longitude'])
-            pilot_departure_airport = current_pilot['flight_plan']['departure']
+            current_pilot = json_File[i]
+            ### ---- Finding out if an aircraft is eligable to be reported.
             try:
-                if pilot_departure_airport is "KATL" and DataCollector.in_geographical_region_wip(self.controlArea, pilot_departure_airport, lat_long_tuple):
+                lat_long_tuple = (current_pilot['latitude'], current_pilot['longitude'])
+                pilot_departure_airport = current_pilot['flight_plan']['departure']
+                if pilot_departure_airport == "KATL" and self.datacollector.in_geographical_region_wip(self.controlArea, pilot_departure_airport, lat_long_tuple):
                     aircraft[current_pilot['callsign']] = current_pilot['flight_plan']['route']
             except:
                 continue
 
+        
+        for i in aircraft:
+            for types in self.proposals:
+                if types in aircraft[i]:
+                    self.proposals[types] = self.proposals[types] + 1
+        print("SCAN COMPLETE...")
+        for i in self.proposals:
+            if self.proposals[i] > 0:
+                proposedDeps[i] = self.proposals[i]
         print(aircraft)
+        print(proposedDeps)
+        return proposedDeps
 
         
     def worstQueue(self):
-        print("lick me")
+        queues = self.countProposalsMath()
+        queueCount = {"N":0,"C":0,"S":0}        
+        for i in queues:
+            for u in self.currentSplit:
+                if i in self.currentSplit[u]:
+                    print(f"setting {u} queue count from {queueCount[u]} to add {queues[i]} on account of {i}.")
+                    queueCount[u] = queueCount[u] + queues[i]
+
+        print(queueCount)
 
                     
     def formatCommand(self, splitPosition):
@@ -168,7 +229,6 @@ class AirspaceManagement:
             splitPosition = splitPosition.replace("south","center")
 
         splitPosition = splitPosition.replace(" ","")
-        print(splitPosition[1])
         if splitPosition[1].isnumeric():
             splitPosition = splitPosition.replace(splitPosition[:2],depCodes[splitPosition.upper()[:2]]).lower()
         return splitPosition

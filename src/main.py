@@ -127,7 +127,7 @@ class Main():
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
-        airspacemanagement = AirspaceManagement(control_area)
+        airspacemanagement = AirspaceManagement(control_area, data_collector)
 
 
         # initial data grab

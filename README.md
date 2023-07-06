@@ -52,3 +52,9 @@ python main.py
  * Times - Prints the current taxi times & associated callsigns.
  * Purge - Clears queue count for delay reporting
  * DROP (Callsign) - Removes cid from queue counter.
+
+ARMT commands
+ * countproposals 
+ * ALL north/center/south
+ * {departure} OR {gate} north/center/south
+ * worstqueue
