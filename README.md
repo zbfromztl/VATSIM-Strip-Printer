@@ -54,7 +54,7 @@ python main.py
  * DROP (Callsign) - Removes cid from queue counter.
 
 ARMT commands
- * countproposals 
- * ALL north/center/south
- * {departure} OR {gate} north/center/south
- * worstqueue
+ * countproposals - Counts all the aircraft on the ground and organizes it based on filed departure gate.
+ * ALL north/center/south - Amends the departure split.
+ * {departure} OR {gate} north/center/south - Amends the departure split (to determine queue count).
+ * worst queue or queue count - Generates length of line for departure if all aircraft on the ground were holding short of their runway, according to the departure split.
