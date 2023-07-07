@@ -127,7 +127,7 @@ class AirspaceManagement:
                 self.amendSplit("normal")
             elif splitPosition[:13] == "countproposal":
                 self.countProposals()
-            elif splitPosition in ["worstqueue","queuecount","q"]:
+            elif splitPosition in ["worstqueue","queuecount","q", "queue"]:
                 self.worstQueue()
 
     def amendSplit(self, input):
