@@ -6,7 +6,7 @@ import pickle
 __author__ = "Simon Heck"
 
 class DataCollector:
-    def __init__(self, json_url:str, control_area:str, printer:Printer, cached_printed_departures:list, cached_departures_file_path:str, positions: dict, airports:dict) -> None:
+    def __init__(self, json_url:str, control_area:str, printer:Printer, cached_printed_departures:list, cached_departures_file_path:str, positions: dict, airports:dict ) -> None:
         self.callsign_list = {}
         self.json_url = json_url
         self.control_area = control_area
@@ -85,33 +85,34 @@ class DataCollector:
         
     def scan_pilots(self):
         connected_pilots = self.json_file['pilots']
-        #lookupdefinitions = {"CD":"departure","GC":"departure","LC":"departure","TAR":"arrival","DR":"departure","COMBINED":"both"}
+        # lookupdefinitions = {"CD":"departure","TAR":"arrival","DR":"departure","COMBINED":"both"}
 
         # Interpreting/Filtering JSON Data
         for i in range(len(connected_pilots)):
             #What field should we check for? Departing or Arriving?
-            lookfor = self.control_area['stripType']
+            # lookfor = lookupdefinitions[self.control_area['type']]
             # pilot at index i information
             current_pilot = connected_pilots[i]
             try:
-                if str(lookfor) == 'both':
-                    #print(f"checking to see if {current_pilot['flight_plan']['departure']} is in {self.control_area['airports']}")
-                    if current_pilot['flight_plan']['departure'] in tuple(self.control_area['airports']):
-                        lookfor = 'departure'
-                    elif current_pilot['flight_plan']['arrival'] in tuple(self.control_area['airports']):
-                        lookfor = 'arrival'
-                if lookfor != 'both':
-                    lat_long_tuple = (current_pilot['latitude'], current_pilot['longitude'])
-                    pilot_callsign = current_pilot['callsign'].upper()
-                    pilot_departure_airport = current_pilot['flight_plan'][lookfor]
-                    if pilot_departure_airport in tuple(self.control_area['airports']) and self.in_geographical_region_wip(self.control_area, pilot_departure_airport, lat_long_tuple):
-                        # Save callsign of pilot and associated JSON Info
-                        # to access, use: self.callsign_list.get(**callsign**)
-                        # that will return the portion of the JSON with all of the pilot's info from when the system added them(flightplan, CID, etc.)
-                        self.add_callsign_to_dep_list(pilot_callsign, current_pilot)
-                    
-                    elif (pilot_departure_airport in tuple(self.control_area['airports'])) and (not self.in_geographical_region_wip(self.control_area['airports'], pilot_departure_airport, lat_long_tuple)) and (pilot_callsign in self.callsign_list):
-                        self.remove_callsign_from_lists(pilot_callsign)
+                # if lookfor == 'both':
+                #     #print(f"checking to see if {current_pilot['flight_plan']['departure']} is in {self.control_area['airports']}")
+                #     if current_pilot['flight_plan']['departure'] in self.control_area['airports']:
+                #         lookfor = 'departure'
+                #     elif current_pilot['flight_plan']['arrival'] in self.control_area['airports']:
+                #         lookfor = 'arrival'
+                # if lookfor != 'both':
+                lat_long_tuple = (current_pilot['latitude'], current_pilot['longitude'])
+                pilot_callsign = current_pilot['callsign'].upper()
+                pilot_departure_airport = current_pilot['flight_plan']['departure']
+                # [lookfor]
+                if pilot_departure_airport in self.control_area['airports'] and self.in_geographical_region_wip(self.control_area, pilot_departure_airport, lat_long_tuple):
+                    # Save callsign of pilot and associated JSON Info
+                    # to access, use: self.callsign_list.get(**callsign**)
+                    # that will return the portion of the JSON with all of the pilot's info from when the system added them(flightplan, CID, etc.)
+                    self.add_callsign_to_dep_list(pilot_callsign, current_pilot)
+                
+                elif (pilot_departure_airport in self.control_area['airports']) and (not self.in_geographical_region_wip(self.control_area['airports'], pilot_departure_airport, lat_long_tuple)) and (pilot_callsign in self.callsign_list):
+                    self.remove_callsign_from_lists(pilot_callsign)
             except TypeError as e1:
                 pass        
             except Exception as e2:
