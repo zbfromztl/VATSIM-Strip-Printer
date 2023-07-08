@@ -41,17 +41,22 @@ class Scanner:
         if position == "GC":
             self.startClock(callsign)
         elif position == "LC":
-            self.sendDeparture(callsign)
+            visualFlag = False
+            if callsign[0] == "v" and callsign[1:].isnumeric():
+                visualFlag = True
+            self.sendDeparture(callsign, visualFlag)
 
     def startClock(self, callsign):
         if callsign not in self.queue:
             currentTime = time.time()
             self.queue[callsign] = currentTime
             print(self.queue)
-    #    else: #This is for BUG TESTING PURPOSES Lol
-    #        self.sendDeparture(callsign)
+        else: #This is for BUG TESTING PURPOSES Lol
+            self.sendDeparture(callsign)
 
-    def sendDeparture(self, callsign):
+    def sendDeparture(self, callsign, visualFlag=""):
+        if visualFlag is None:
+            visualFlag = False
         print(self.queue)
         if callsign in self.queue:
             #Determine Delay
@@ -62,7 +67,7 @@ class Scanner:
         #    self.totalDelay[callsign] = {"totalDelay":totalDelay,"outTime":currentTime}
         #    print(self.totalDelay[callsign])
             self.queue.pop(callsign)
-        self.pushDeparture(callsign)
+        self.pushDeparture(callsign, visualFlag)
         print(self.queue)
 
     def purgeQueue(self):
@@ -198,6 +203,5 @@ class Scanner:
         else:
             return "OTHER:OTHER"
 
-    def pushDeparture(self,callsign):
-        visualFlag = False
+    def pushDeparture(self, callsign, visualFlag):
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')

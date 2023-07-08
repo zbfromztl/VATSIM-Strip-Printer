@@ -8,6 +8,8 @@ from HazardousWX import WXRadio
 import pickle
 import json
 from HazardousWX import WXRadio
+from EFSTS import Scanner
+from armt import AirspaceManagement
 
 __author__ = "Simon Heck"
 
@@ -154,6 +156,7 @@ class Main():
                                             #    , efsts)
         json_refresh = JSONRefreshTimer(data_collector)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
+        airspacemanagement = AirspaceManagement(control_area, data_collector)
 
 
         # initial data grab
@@ -167,7 +170,11 @@ class Main():
         automated_strip_printing = threading.Thread(target=data_collector.scan_for_new_aircraft_automatic)
         # Thread4: automatically print SIGMETs/AIRMETs every once in a while.
         wxradio = threading.Thread(target=wx_refresh.start_refreshing)
-        
+
+        # Thread5: Keep track of departure delays. Manage strip scanners.
+        scans = threading.Thread(target=efsts.opsNet)
+        airspace = threading.Thread(target=airspacemanagement.getSplit)
+
         print("Would you like Hazardous Weather Advisories?")
         enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
 
@@ -182,9 +189,19 @@ class Main():
         # start other threads
         automated_strip_printing.start()
         JSON_timer.start()
-        user_input.start()
+        if control_area["type"] != "TMU":
+            user_input.start()
+        else:
+            airspace.start()
+
         if enablewxradio:
             wxradio.start()
+
+
+      #  if control_area['type'] == "GC" or control_area['type'] == "LC":
+        scans.start()
+        
+        
 
 if __name__ == "__main__":
    main = Main()
