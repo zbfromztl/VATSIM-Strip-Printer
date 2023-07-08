@@ -47,6 +47,9 @@ class Scanner:
             self.sendDeparture(callsign, visualFlag)
 
     def startClock(self, callsign):
+        if callsign.isnumeric() == False:
+            print("no bueno")
+            return
         if callsign not in self.queue:
             currentTime = time.time()
             self.queue[callsign] = currentTime
