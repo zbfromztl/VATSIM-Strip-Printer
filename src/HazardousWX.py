@@ -61,14 +61,23 @@ class WXRadio:
                 rawsigmet = i["rawAirSigmet"].splitlines()
                 self.sigmet_list.append(i["airSigmetId"])
                 if type == "SIGMET":
-                    self.printer.print_gi_messages(f'{rawsigmet[0]}{rawsigmet[1]}{rawsigmet[2]}{rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[5]}... {rawsigmet[6]}{rawsigmet[7]}')
-                #    self.printer.print_gi_messages(f'{rawsigmet[2]} {rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[6]}{rawsigmet[7]}')
+                 #   for i in rawsigmet:
+                 #       gi_message = f'{i}'
+                    try:
+                        gi_message = (f'{rawsigmet[0]}{rawsigmet[1]}{rawsigmet[2]}{rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[5]}... {rawsigmet[6]}{rawsigmet[7]}')
+                    #    self.printer.print_gi_messages(f'{rawsigmet[2]} {rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[6]}{rawsigmet[7]}')
+                        self.printer.print_gi_messages(gi_message)
+                    except:
+                        continue
                 elif type == "AIRMET":
-                    for i in rawsigmet:
-                        gi_message = f'{i}'
-                #    gi_message = (f'{rawsigmet[0]}{rawsigmet[1]} {rawsigmet[2]} {rawsigmet[3]} {rawsigmet[4]} {rawsigmet[5]} {rawsigmet[6]}') 
-                #    gi_message = (f'{rawsigmet[2]} {rawsigmet[3]} {rawsigmet[6]}')
-                    self.printer.print_gi_messages(gi_message)
+                 #   for i in rawsigmet:
+                #        gi_message = f'{i}'
+                    try:
+                        gi_message = (f'{rawsigmet[0]}{rawsigmet[1]} {rawsigmet[2]} {rawsigmet[3]} {rawsigmet[4]} {rawsigmet[5]} {rawsigmet[6]}') 
+                    #    gi_message = (f'{rawsigmet[2]} {rawsigmet[3]} {rawsigmet[6]}')
+                        self.printer.print_gi_messages(gi_message)
+                    except:
+                        continue
     
     def fetch_cwas(self, api, center):
         api = f'{self.cwasJSON}{(self.airports[self.control_area["airports"][0]]["ARTCC"])}/cwas'
