@@ -1,6 +1,3 @@
-### I think this should maybe keep track of the departure split? Maybe?
-### Definitely should be able to poll the number of departures i think
-
 import time
 import json
 from DataCollector import DataCollector
@@ -125,8 +122,10 @@ class AirspaceManagement:
                 self.amendSplit(splitPosition)
             elif splitPosition[:6] == "normal":
                 self.amendSplit("normal")
-            elif splitPosition[:13] == "countproposal":
+            elif splitPosition[:5] == "count":
                 self.countProposals()
+            elif splitPosition in ["display","current","split","currentsplit","displaysplit"]:
+                self.displaySplit()
             elif splitPosition in ["worstqueue","queuecount","q", "queue"]:
                 self.worstQueue()
 
@@ -167,7 +166,9 @@ class AirspaceManagement:
         except:
             print("huh?")
     
-
+    def displaySplit(self):
+        print("Current split:")
+        print(self.currentSplit)
     
     def countProposals(self):
         proposals = self.countProposalsMath()
@@ -204,7 +205,6 @@ class AirspaceManagement:
             except:
                 continue
 
-        
         for i in aircraft:
             for types in self.proposals:
                 if types in aircraft[i]:
