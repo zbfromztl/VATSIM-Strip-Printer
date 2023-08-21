@@ -7,12 +7,11 @@ __author__ = "Simon Heck"
 
 class CallsignRequester:
     control_area = "A80ALL" # Set A80ALL as the control area in case theres some failure, lol.
-    def __init__(self, printer: Printer, data_collector: DataCollector, control_area) -> None:
-                #  , scanner: Scanner) 
+    def __init__(self, printer: Printer, data_collector: DataCollector, control_area, scanner: Scanner) -> None:
         self.printer = printer
         self.data_collector = data_collector
         self.control_area = control_area
-        # self.scan = scanner
+        self.scan = scanner
 
     def request_callsign_from_user(self) -> str:
         time.sleep(0.5)
@@ -33,6 +32,9 @@ class CallsignRequester:
                 self.scan.purgeQueue()
             elif flag == "TIME":
                 self.scan.listTimes()
+            elif flag == "CONVERT":
+                callsign_to_print = callsign_to_print[6:].strip()
+                self.scan.convert_identity(callsign_to_print)
             elif flag == "DROP":
                 callsign_to_print = callsign_to_print[4:].strip()
                 self.scan.dropTime(callsign_to_print)
@@ -61,8 +63,12 @@ class CallsignRequester:
             if len(callsign_to_print) < 6: #If the callsign is less than 6 characters, it can NOT be a CID. Therefore, we're printing a flight strip.    
                 return "Print"     
             elif callsign_to_print[0:4] == "drop":
-                return "DROP"          
+                return "DROP"        
+            elif callsign_to_print[0:6] == "lookup":
+                return "CONVERT"          
             elif (callsign_to_print.upper().replace("V","",1)).isnumeric(): #We're checking to see if the callsign starts with a "V" to indicate "visual separation".
+                if callsign_to_print[0] == "V" and callsign_to_print[1].isnumeric():
+                    Visual = True
                 return "Scan"
             elif callsign_to_print.isalnum(): #If the callsign has numbers AND letters, it can NOT be a CID. Therefore, we're printing a flight strip.
                 return "Print"

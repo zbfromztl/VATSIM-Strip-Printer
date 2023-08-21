@@ -68,7 +68,9 @@ class WXRadio:
                     #    self.printer.print_gi_messages(f'{rawsigmet[2]} {rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[6]}{rawsigmet[7]}')
                         self.printer.print_gi_messages(gi_message)
                     except:
-                        continue
+                        gi_message = i["rawAirSigmet"]
+                        self.printer.print_gi_messages(gi_message)
+                        
                 elif type == "AIRMET":
                  #   for i in rawsigmet:
                 #        gi_message = f'{i}'
@@ -97,10 +99,9 @@ class WXRadio:
 
     def wxsync(self):
         #Sync up the time so that if theres a bunch of printers... they all print at the same time?
-        timenow = tuple(time.gmtime())
+        minutes = time.gmtime().tm_min
         
-        minutes = timenow[4]
-        while (minutes > 5):
+        while minutes > 5:
             minutes = minutes - 5
         
         delaytime = ((5 - minutes) * 60) + 60
