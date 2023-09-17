@@ -99,7 +99,9 @@ class Main():
         # -----Print all Departures-----
         while(True):
             try:
+                do_we_print = False
                 if control_area['auto_Print_Strips']: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
+                    do_we_print = bool(int(input("Do you want to print paper flight progress strips? Reply with a '1' for yes, or '0' for no: ")))
                     response = input("Do you want to print all departures on the ground? Reply with a '1' for yes, '0' for no: ")
                     print_all_departures = bool(int(response))
                     if(print_all_departures):
@@ -121,7 +123,7 @@ class Main():
         # if not print_cached_departures:
         printed_callsigns = current_callsigns_cached
         
-        printer = Printer(acft_dict) 
+        printer = Printer(acft_dict, do_we_print) 
         data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
