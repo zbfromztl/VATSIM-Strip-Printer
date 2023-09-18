@@ -2,15 +2,17 @@ import random
 from zebra import Zebra
 import time
 import json
+import math
 
 
 __author__ = "Simon Heck"
 
 class Printer:
-    def __init__(self, acrft_json, do_we_print) -> None:
+    def __init__(self, acrft_json, do_we_print, wp_db) -> None:
         #Pull RECAT database
         self.printer = do_we_print
         self.recat_db = acrft_json
+        self.waypoint_db = wp_db
         self.zebra = Zebra()
         Q = self.zebra.getqueues()
         self.zebra.setqueue(Q[0])
@@ -68,12 +70,12 @@ class Printer:
             ac_type = self.format_actype(ac_type)
             fp_type = callsign_data['flight_plan']["flight_rules"]
             fp_type = f'{fp_type}FR'
-            cruise_alt = self.format_cruise_altitude(callsign_data['flight_plan']['altitude'])
-            arrivalroute = self.format_arrival_route(callsign_data['flight_plan']['route'], callsign_data['flight_plan']['arrival'])
-            prevfix = arrivalroute[0]
-            star = arrivalroute[1][0:5]
-            assigned_sq = callsign_data['flight_plan']['assigned_transponder']
             destination = callsign_data['flight_plan']['arrival']
+            cruise_alt = self.format_cruise_altitude(callsign_data['flight_plan']['altitude'])
+            arrivalroute = self.format_arrival_route(callsign_data['flight_plan']['route'], destination)
+            prevfix = self.match_coordination_fix(arrivalroute[0])
+            star = arrivalroute[1][:-1]
+            assigned_sq = callsign_data['flight_plan']['assigned_transponder']
             remarks=callsign_data['flight_plan']['remarks']
             remarks = self.format_remarks(callsign_data['flight_plan']['remarks'])
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
@@ -81,12 +83,14 @@ class Printer:
             if amendment_number == '0':
                 amendment_number = ""
 
+            aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
+            eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
 
             if self.printer:  #Check to see if we want to print paper strips
-                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos9=fp_type, pos9A = destination, pos9C=remarks)
+                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = destination, pos9C=remarks)
             else:
                 # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
-                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, destination, remarks, fp_type)
+                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, destination, remarks, fp_type)
 
         else:
             airfields = str.replace(str.replace(str.replace(str(list.copy(control_area['airports'])),"'",""),"[",""),"]","")
@@ -324,3 +328,100 @@ class Printer:
             return f'{self.recat_db["aircraft"][aircaft_type]["recat"]}/{aircaft_type}{equipment_suffix}'
         except:
             return aircraft_description
+
+    def match_coordination_fix(self, transition):
+        coordination_fixes = {
+            "Transition" : "Prev_WP",
+            "RUSSA" : "MADDX", #GLAVN
+            "MGRIF" : "AAARN",
+            "JKSON" : "MADDX",
+
+            "BBABE":"LEMKE", #CHPPR
+            "LEMKE":"LEMKE",
+            "MTHEW":"LEMKE",
+            "RUTTH":"LEMKE",
+
+            "BEORN":"SMAWG", #GNDLF/HOBTT
+            "COOUP":"SMAWG",
+            "DRSDN":"SMAWG",
+            "ENNTT":"SMAWG",
+            "FRDDO":"SMAWG",
+            "GOLLM":"SMAWG",
+            "KHMYA":"SMAWG",
+            "ORRKK":"SMAWG",
+            "SHYRE":"SMAWG",
+            "STRDR":"SMAWG",
+
+            "EEWOK":"CHWEE", #JJEDI waypoints... can't do SITTH unless I add more code and I don't really want to.
+            "HOTHH":"BBFET",
+            "LARZZ":"WOKIE",
+            "LAYUH":"WOKIE",
+            "MELNM":"CHWEE",
+            "SKWKR":"CHWEE",
+            "TYFTR":"WOKIE",
+
+            "HLRRY":"STRWY", #ONDRE
+            "HIGGI":"STRWY",
+            "KTRYN":"STRWY",
+            "PUPDG":"STRWY",
+            "STRWY":"STRWY",
+            
+            "DGESS":"WINNG", #OZZZI
+            "FLASK":"WINNG",
+            "LEAVI":"WINNG",
+            "MHONY":"WINNG",
+            "WINNG":"WINNG",
+
+            "T414":"WOMAC", #V airways
+            "V333":"ERLIN",
+            "V325":"CARAN",
+            "V222":"HONIE",
+            "V179":"SINCA"
+        }
+        try:
+            return coordination_fixes[transition]
+        except:
+            return transition
+
+    def calculate_eta(self, aircraft_position:tuple, aircraft_groundspeed:int, coordination_fix):
+        #So that we still get something that prints (30 minutes to coordination fix), even if someone files something stupid
+        failsafe_min = time.gmtime().tm_min + 30
+        failsafe_hour = time.gmtime().tm_hour
+
+        aircraft_lat, aircraft_lon = aircraft_position
+
+        try:
+            #Step one: Calculate distance to coordination fix
+            cf_location = self.waypoint_db["navdata"][coordination_fix]["Location"]
+            cf_lat, cf_lon = cf_location["Lat"], cf_location["Lon"]
+            lat_off = abs(aircraft_lat - cf_lat)
+            lon_off = abs(aircraft_lon - cf_lon)
+            dme_to_fix = lat_off**2 + lon_off**2
+            distance = math.sqrt(dme_to_fix)
+            distance = distance * 60 # Convert from Decimal to Nautical Miles
+
+            #Step two: Calculate time to coordination fix.
+            aircraft_groundspeed = aircraft_groundspeed - 0 #In case we wanna take into account the fact that airplanes 
+                                                            #at lower altitudes will be moving slower... (the system catches them at cruise)
+            timetogo = distance / aircraft_groundspeed
+            timetogo = int(timetogo * 60)
+            #Step three: If airplane is on the ground (or bugsmasher in bad headwind), do NOT overwrite the failsafe time
+            #If they are NOT on the ground, add the "time to go" to the thingy
+            if aircraft_groundspeed > 45:
+                failsafe_min = time.gmtime().tm_min + timetogo
+                failsafe_hour = time.gmtime().tm_hour
+
+        except: #Perhaps, one day, make it so that this just takes their distance to the destination airport
+            print(f"Error determining time to {coordination_fix}. Time to make some shit up!")
+
+        #Format the time so that its readable.
+        while failsafe_min >= 60:
+            failsafe_min = failsafe_min - 60
+            failsafe_hour = failsafe_hour + 1
+        while failsafe_hour >= 24:
+            failsafe_hour = failsafe_hour - 24
+        failsafe_hour = str(failsafe_hour).zfill(2)
+        failsafe_min = str(failsafe_min).zfill(2)
+        calculated_eta = f'{failsafe_hour}{failsafe_min}'
+
+        return f'A{calculated_eta}'

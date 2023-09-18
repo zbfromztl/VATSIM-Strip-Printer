@@ -13,7 +13,6 @@ Version: Python 3.11.3
 # To do:
   * Make starting text prompts easier to understand
   * Don't print VFR strips/Don't print amended VFR strips?
-  * sync data refresh with VATSIM data refresh cycle
   * Clean up Code for new airports. Add new airports. Store in JSON?
   * Add visual flag to scanner elements. Build network for scanner.
   * Add GUI elements to the program
@@ -25,6 +24,7 @@ Version: Python 3.11.3
   * Multi-threaded to simultaneously listen for user input, update JSON data, and scan for new departures
   * Print Hazardous Weather Information
   * Log airport delays & limited logic to determine cause.
+  * Data refresh syncs with VATSIM data refresh cycle
   * Others
 
 # Hardware:

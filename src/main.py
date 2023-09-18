@@ -17,6 +17,7 @@ class Main():
         acft_json_path = "./data/acft_database.json"
         airports_path = "./data/airports.json"
         printerpositions_path = "./data/positions.json"
+        waypoint_database = "./data/waypoint_database.json"
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://beta.aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -29,20 +30,25 @@ class Main():
 
         #7/3 BEGIN
         
-        # ----Open Printer Positions----
+        # ----Open Printer Positions---
         printer_positions_file = open(printerpositions_path, 'rb')
         printer_positions = json.load(printer_positions_file)
         printer_positions_file.close()
 
-        # ---Open Airports File-----
+        # ---Open Airports File----
         airfields_file = open(airports_path, 'rb')
         airports = json.load(airfields_file)
         airfields_file.close()
         
-        # ---Open Aircraft File-----
+        # ---Open Aircraft File----
         acft_file = open(acft_json_path, 'rb')
         acft_dict = json.load(acft_file)
         acft_file.close()
+
+        # ---Open Waypoint Database---
+        waypoint_file = open(waypoint_database, 'rb')
+        waypoint_db = json.load(waypoint_file)
+        waypoint_file.close()
 
         #7/3 END
 
@@ -102,7 +108,7 @@ class Main():
                 do_we_print = False
                 if control_area['auto_Print_Strips']: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
                     do_we_print = bool(int(input("Do you want to print paper flight progress strips? Reply with a '1' for yes, or '0' for no: ")))
-                    response = input("Do you want to print all departures on the ground? Reply with a '1' for yes, '0' for no: ")
+                    response = input("Do you want to print eligble aircraft already present in the area of jurisdiction? Reply with a '1' for yes, '0' for no: ")
                     print_all_departures = bool(int(response))
                     if(print_all_departures):
                         response = input(f"This will possibly print up to {len(current_callsigns_cached)} strips. Reply '1' for yes, '0' for no: ")
@@ -123,7 +129,7 @@ class Main():
         # if not print_cached_departures:
         printed_callsigns = current_callsigns_cached
         
-        printer = Printer(acft_dict, do_we_print) 
+        printer = Printer(acft_dict, do_we_print, waypoint_db) 
         data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
