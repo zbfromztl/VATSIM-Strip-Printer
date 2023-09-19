@@ -2,16 +2,17 @@ import random
 from zebra import Zebra
 import time
 import json
+import math
 
 
 __author__ = "Simon Heck"
 
 class Printer:
-    def __init__(self, acrft_json_path) -> None:
+    def __init__(self, acrft_json, do_we_print, wp_db) -> None:
         #Pull RECAT database
-        json_file = open(acrft_json_path)
-        self.recat_db = json.load(json_file)
-        json_file.close()
+        self.printer = do_we_print
+        self.recat_db = acrft_json
+        self.waypoint_db = wp_db
         self.zebra = Zebra()
         Q = self.zebra.getqueues()
         self.zebra.setqueue(Q[0])
@@ -21,15 +22,18 @@ class Printer:
         callsign = input("Enter Callsign: ")
         return callsign.upper()
 
-    def print_callsign_data(self, callsign_data, requested_callsign, control_area):
+    def print_callsign_data(self, callsign_data, requested_callsign, control_area, strip_type):
         
         # callsign_data = self.data_collector.get_callsign_data(requested_callsign)
         if requested_callsign == "" or None:
-            print("blank")
-            # print blank strip
-        #    self.zebra.output(f"^XA^CWK,E:FLIGHTPROGRESSSTRIP.TTF^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB140,1,0,L^FO5,1470^FD^AKb,35,35^FS^FB200,1,0,L^FO60,1400^FD^AKb,35,35^FS^FO130,1530^FD^FS^FB200,1,0,R^FO45,1320^FD^AKb,80,80^FS^FO5,1200^FD^AKb,35,35^FS^FO80,1190^FD^AKb,35,35^FS^FO145,1220^FD^AKb,35,35^FS^FO5,1050^FD^AKb,35,35^FS^FB500,1,0,L^FO5,450^FD^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
+            # Print blank flight strips
+            if self.printer: #Check to see if we want to print paper strips
+                self.zebra.output(f"^XA^CWK,E:FLIGHTPROGRESSSTRIP.TTF^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB140,1,0,L^FO5,1470^FD^AKb,35,35^FS^FB200,1,0,L^FO60,1400^FD^AKb,35,35^FS^FO130,1530^FD^FS^FB200,1,0,R^FO45,1320^FD^AKb,80,80^FS^FO5,1200^FD^AKb,35,35^FS^FO80,1190^FD^AKb,35,35^FS^FO145,1220^FD^AKb,35,35^FS^FO5,1050^FD^AKb,35,35^FS^FB500,1,0,L^FO5,450^FD^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
+            else:
+                print("blank")
 
-        elif callsign_data is not None:# and (control_area['type'] == "CD" or control_area['type'] == "COMBINED"):
+        # elif callsign_data is not None and control_area['stripType'] != "arrival": #Print "departure" or "both" strips 
+        elif callsign_data is not None and strip_type != "arrival": #Print "departure" or "both" strips 
             callsign = callsign_data['callsign']
             departure_airport = callsign_data['flight_plan']['departure']
             ac_type = callsign_data['flight_plan']['aircraft_faa']
@@ -42,11 +46,10 @@ class Printer:
             remarks=callsign_data['flight_plan']['remarks']
             remarks = self.format_remarks(callsign_data['flight_plan']['remarks'])
             enroute_time = callsign_data['flight_plan']['enroute_time']
-            cid = f"^FO110,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}" #Format barcode here...
-            # cid = callsign_data['cid']
-            if control_area['airports'][0] != "KATL" or control_area['type'] != "CD": #purge barcode if not ATL clearance
-                cid = ""
-            exit_fix = self.match_ATL_exit_fix(callsign_data['flight_plan']['route'])
+            cid = ""
+            if control_area['hasBarcode']: #If it should have the barcode, format it here.
+                cid = f"^FO110,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
+            exit_fix = self.match_ATL_exit_fix(flightplan)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
             amendment_number = str(int(callsign_data['flight_plan']['revision_id'])-1)
             if amendment_number == '0':
@@ -54,15 +57,44 @@ class Printer:
 
             #print flight strip on printer
 
-           
-            print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {flightplan}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
+            if self.printer:  #Check to see if we want to print paper strips
+                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=flightplan, pos9D=destination, pos9A=remarks)
             # zebra.output(f"^XA^CWK,E:FLIGHTPROGRESSSTRIP.TTF^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB250,1,0,L^FO5,1350^FD{callsign}^AKb,35,35^FS^FB200,1,0,L^FO70,1400^FD{ac_type}^AKb,35,35^FS^FO130,1540^FD{computer_id}^AKb,35,35^FS^FO130,1320^BCB,40,N,N,N,A^FD{cid}^FS^FB200,1,0,R^AKb,45,45^FO45,1320^FD{exit_fix}^AKb,80,80^FS^FO5,1200^FD{assigned_sq}^AKb,35,35^FS^FO80,1190^FD{departure_time}^AKb,35,35^FS^FO145,1220^FD{cruise_alt}^AKb,35,35^FS^FO5,1050^FD{departure_airport}^AKb,35,35^FS^FB500,1,0,L^FO5,450^FD{flightplan}^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD{destination}^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD{remarks}^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
             # zebra.output(f"^XA^CWK,E:FLIGHTPROGRESSSTRIP.TTF^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB250,1,0,L^FO5,1350^FD{callsign}^AKb,35,35^FS^FB200,1,0,L^FO70,1400^FD{ac_type}^AKb,35,35^FS^FO130,1540^FD{computer_id}^AKb,35,35^FS{cid}^FS^FB200,1,0,R^AKb,45,45^FO35,1300^FD{exit_fix}^AKb,80,80^FS^FO5,1200^FD{assigned_sq}^AKb,35,35^FS^FO80,1190^FD{departure_time}^AKb,35,35^FS^FO145,1220^FD{cruise_alt}^AKb,35,35^FS^FO5,1050^FD{departure_airport}^AKb,35,35^FS^FB550,1,0,L^FO5,400^FD{flightplan}^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD{destination}^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD{remarks}^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
-        #    self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=flightplan, pos9D=destination, pos9A=remarks)
+            else:
+                print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {flightplan}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
+               
+                   
+        elif callsign_data is not None and strip_type != "departure": #Temporary for arrival strips
+            callsign = callsign_data['callsign']
+            ac_type = callsign_data['flight_plan']['aircraft_faa']
+            ac_type = self.format_actype(ac_type)
+            fp_type = callsign_data['flight_plan']["flight_rules"]
+            fp_type = f'{fp_type}FR'
+            destination = callsign_data['flight_plan']['arrival']
+            cruise_alt = self.format_cruise_altitude(callsign_data['flight_plan']['altitude'])
+            arrivalroute = self.format_arrival_route(callsign_data['flight_plan']['route'], destination)
+            prevfix = self.match_coordination_fix(arrivalroute[0])
+            star = arrivalroute[1][:-1]
+            assigned_sq = callsign_data['flight_plan']['assigned_transponder']
+            remarks=callsign_data['flight_plan']['remarks']
+            remarks = self.format_remarks(callsign_data['flight_plan']['remarks'])
+            computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
+            amendment_number = str(int(callsign_data['flight_plan']['revision_id'])-1)
+            if amendment_number == '0':
+                amendment_number = ""
+
+            aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
+            # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
+            eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], destination)
+
+            if self.printer:  #Check to see if we want to print paper strips
+                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = destination, pos9C=remarks)
+            else:
+                # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
+                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, destination, remarks, fp_type)
 
         else:
-        #    if control_area['type'] != "CD" and control_area['type'] != "COMBINED":
-        #        return
             airfields = str.replace(str.replace(str.replace(str(list.copy(control_area['airports'])),"'",""),"[",""),"]","")
             print(f"Could not find {requested_callsign} in {airfields} proposals. Nice going, dumbass.")
     
@@ -95,9 +127,18 @@ class Printer:
                           ^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ""")
 
     def print_gi_messages(self, message):
-        print(f"{message}")
-        # self.zebra.output(f"^XA^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FS^FB1590,4,3,L,25^FO0,10^FD{message}^A0b,40,40^XZ")
-
+        if self.printer: #Check to see if we want to print paper strips
+            self.zebra.output(f"^XA^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FS^FB1590,4,3,L,25^FO0,10^FD{message}^A0b,40,40^XZ")
+        else:
+            print(f"{message}")
+        
+    def print_memoryAids(self):
+        print("STOP")
+        print("\\\\\\ NO LUAW ///")
+        print("S/E SLAWW/FUTBL")
+        print("W/N SNUFY/MPASS")
+        print("S/E GRITZ/LIDAS")
+        print("W/N HRSHL/RONII")
 
     def remove_amendment_marking(self, route:str) -> str:
         route = route.replace("+", "")
@@ -137,8 +178,8 @@ class Printer:
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
-        if flightrules != "I" and flightrules != "D":
-            return ""
+        # if flightrules != "I" and flightrules != "D":
+        #     return ""
 
         # has the flight plan been amended
         # modified_flightplan = flightplan
@@ -158,6 +199,10 @@ class Printer:
         if "dct" in flightplan_list:
             flightplan_list.remove("dct")
         
+        #If the departure airport is filed in the flight plan, remove it.
+        if flightplan_list[0] == departure:
+            flightplan_list.pop(0)
+        
         # removes simbrief crap at start of flightplan
         i=0
         while(i < len(flightplan_list)):
@@ -174,7 +219,7 @@ class Printer:
                 return  f"+{departure} {build_string}+"
             elif i >= 3:
                 build_string = build_string.strip()
-                return f"{departure} {build_string}./."
+                return f"{departure} {build_string}. / ."
             
             build_string = f"{build_string}{flightplan_list[i]} "
         build_string = f'{departure} {build_string}'
@@ -184,6 +229,19 @@ class Printer:
         else:
             return build_string.strip()
         
+    def format_arrival_route(self, flightplan:str, destination:str): #Truncates flight plan to last 2 items.
+        flightplan = flightplan.replace(destination, "")
+        try:
+            route_end = flightplan.rsplit(" ",2)
+            newroute = route_end[-2], route_end[-1]
+            #print(route_end)
+           # newroute = "hey"#route_end[-2:]
+            #print(newroute)
+        except:
+            print("error with route")
+            newroute = ['UNKN', 'UNKN']
+        return newroute
+
     def format_cruise_altitude(self, altitude:str):
         formatted_altitude = altitude.upper()
         formatted_altitude = formatted_altitude.replace("FL", "")
@@ -225,6 +283,7 @@ class Printer:
         modified_flightplan = flightplan
         modified_flightplan = self.remove_amendment_marking(modified_flightplan)
         modified_flightplan = modified_flightplan.strip()
+        modified_flightplan = modified_flightplan[5:]
 
         flightplan_list = modified_flightplan.split(" ")
         if len(flightplan_list) > 0:
@@ -232,6 +291,7 @@ class Printer:
         if exit_fix is None:
             exit_fix = ""
         return exit_fix
+    
     def generate_id(self, remarks:str):
         lower_remarks = remarks.lower()
         r1 = str(random.randint(0,9))
@@ -256,7 +316,6 @@ class Printer:
         return f"{r1}{r2}{r3}"
 
     def format_actype(self, aircraft_description:str):
-        
         #Format that stuff & send it back
         aircraft_description = aircraft_description.replace("H/","")
         aircraft_description = aircraft_description.replace("J/","")
@@ -271,3 +330,105 @@ class Printer:
             return f'{self.recat_db["aircraft"][aircaft_type]["recat"]}/{aircaft_type}{equipment_suffix}'
         except:
             return aircraft_description
+
+    def match_coordination_fix(self, transition):
+        coordination_fixes = {
+            "Transition" : "Prev_WP",
+            "RUSSA" : "MADDX", #GLAVN
+            "MGRIF" : "AAARN",
+            "JKSON" : "MADDX",
+
+            "BBABE":"LEMKE", #CHPPR
+            "LEMKE":"LEMKE",
+            "MTHEW":"LEMKE",
+            "RUTTH":"LEMKE",
+
+            "BEORN":"SMAWG", #GNDLF/HOBTT
+            "COOUP":"SMAWG",
+            "DRSDN":"SMAWG",
+            "ENNTT":"SMAWG",
+            "FRDDO":"SMAWG",
+            "GOLLM":"SMAWG",
+            "KHMYA":"SMAWG",
+            "ORRKK":"SMAWG",
+            "SHYRE":"SMAWG",
+            "STRDR":"SMAWG",
+
+            "EEWOK":"CHWEE", #JJEDI waypoints... can't do SITTH unless I add more code and I don't really want to.
+            "HOTHH":"BBFET",
+            "LARZZ":"WOKIE",
+            "LAYUH":"WOKIE",
+            "MELNM":"CHWEE",
+            "SKWKR":"CHWEE",
+            "TYFTR":"WOKIE",
+
+            "HLRRY":"STRWY", #ONDRE
+            "HIGGI":"STRWY",
+            "KTRYN":"STRWY",
+            "PUPDG":"STRWY",
+            "STRWY":"STRWY",
+            
+            "DGESS":"WINNG", #OZZZI
+            "FLASK":"WINNG",
+            "LEAVI":"WINNG",
+            "MHONY":"WINNG",
+            "WINNG":"WINNG",
+
+            "T414":"WOMAC", #V airways
+            "V333":"ERLIN",
+            "V325":"CARAN",
+            "V222":"HONIE",
+            "V179":"SINCA"
+        }
+        try:
+            return coordination_fixes[transition]
+        except:
+            return transition
+
+    def calculate_eta(self, aircraft_position:tuple, aircraft_groundspeed:int, coordination_fix):
+        #So that we still get something that prints (6 minutes to coordination fix), even if someone files something stupid
+        failsafe_min = time.gmtime().tm_min + 30
+        failsafe_hour = time.gmtime().tm_hour
+
+        aircraft_lat, aircraft_lon = aircraft_position
+
+        try:
+            #Step one: Calculate distance to coordination fix
+            cf_location = self.waypoint_db["navdata"][coordination_fix]["Location"]
+            cf_lat, cf_lon = cf_location["Lat"], cf_location["Lon"]
+            lat_off = abs(aircraft_lat - cf_lat)
+            lon_off = abs(aircraft_lon - cf_lon)
+            dme_to_fix = lat_off**2 + lon_off**2
+            distance = math.sqrt(dme_to_fix)
+            distance = distance * 60 # Convert from Decimal to Nautical Miles
+
+            #Step two: Calculate time to coordination fix.
+
+            if aircraft_groundspeed < 15: #If the aircraft arrived, let's try to not error
+                aircraft_groundspeed = 100000
+
+           # aircraft_groundspeed = aircraft_groundspeed - 0 #In case we wanna take into account the fact that airplanes 
+                                                            #at lower altitudes will be moving slower... (the system catches them at cruise)
+            timetogo = distance / aircraft_groundspeed
+            timetogo = int(timetogo * 60)
+            #old step 3 cuz this is fuckin dumb Step three: If airplane is on the ground (or bugsmasher in bad headwind), do NOT overwrite the failsafe time
+            #If they are NOT on the ground, add the "time to go" to the thingy
+            # if aircraft_groundspeed > 45:
+            failsafe_min = time.gmtime().tm_min + timetogo
+            failsafe_hour = time.gmtime().tm_hour
+
+
+        except: #Perhaps, one day, make it so that this just takes their distance to the destination airport
+            print(f"Error determining time to {coordination_fix}. Time to make some shit up!")
+
+        #Format the time so that its readable.
+        while failsafe_min >= 60:
+            failsafe_min = failsafe_min - 60
+            failsafe_hour = failsafe_hour + 1
+        while failsafe_hour >= 24:
+            failsafe_hour = failsafe_hour - 24
+        failsafe_hour = str(failsafe_hour).zfill(2)
+        failsafe_min = str(failsafe_min).zfill(2)
+        calculated_eta = f'{failsafe_hour}{failsafe_min}'
+
+        return f'A{calculated_eta}'
