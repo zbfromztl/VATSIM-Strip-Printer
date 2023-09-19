@@ -28,7 +28,7 @@ class DataCollector:
     def get_callsign_list(self):
         return self.callsign_list
     
-    def add_callsign_to_dep_list(self, pilot_callsign:str, new_pilot_data_associated_with_callsign:dict):
+    def add_callsign_to_dep_list(self, pilot_callsign:str, new_pilot_data_associated_with_callsign:dict, strip_type):
         new_pilot_route:str = new_pilot_data_associated_with_callsign['flight_plan']['route']
         if '+' in new_pilot_route:
             new_pilot_route = new_pilot_route.replace('+', '')
@@ -41,7 +41,7 @@ class DataCollector:
             if new_pilot_route != current_pilot_route:
                 # pilot has received a reroute
                 self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
-                self.printer.print_callsign_data(self.callsign_list[pilot_callsign], pilot_callsign, self.control_area)
+                self.printer.print_callsign_data(self.callsign_list[pilot_callsign], pilot_callsign, self.control_area, strip_type)
         else:
             # new_pilot_data_associated_with_callsign['flight_plan']['route'] = new_pilot_route
             self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
@@ -52,7 +52,17 @@ class DataCollector:
             # TODO, lock callsign list to leep them synced
             for callsign_to_print in callsign_table:
                 if callsign_to_print not in self.printed_callsigns:
-                    self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area)
+                    
+                    #What field should we check for? Departing or Arriving?
+                    lookfor = self.control_area['stripType']
+                    if str(lookfor) == 'both':
+                        fp_data = callsign_table.get(callsign_to_print)
+                        if fp_data['flight_plan']['departure'] in tuple(self.control_area['airports']):
+                            lookfor = 'departure'
+                        elif fp_data['flight_plan']['arrival'] in tuple(self.control_area['airports']):
+                            lookfor = 'arrival'
+
+                    self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
                 # auto_update cached callsigns
             file = open(self.cached_departures_file_path, 'wb')
@@ -117,7 +127,7 @@ class DataCollector:
                         # Save callsign of pilot and associated JSON Info
                         # to access, use: self.callsign_list.get(**callsign**)
                         # that will return the portion of the JSON with all of the pilot's info from when the system added them(flightplan, CID, etc.)
-                        self.add_callsign_to_dep_list(pilot_callsign, current_pilot)
+                        self.add_callsign_to_dep_list(pilot_callsign, current_pilot, lookfor)
                     
                     elif (pilot_departure_airport in tuple(self.control_area['airports'])) and (not self.in_geographical_region_wip(self.control_area['airports'], pilot_departure_airport, lat_long_tuple)) and (pilot_callsign in self.callsign_list):
                         self.remove_callsign_from_lists(pilot_callsign)

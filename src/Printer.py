@@ -22,7 +22,7 @@ class Printer:
         callsign = input("Enter Callsign: ")
         return callsign.upper()
 
-    def print_callsign_data(self, callsign_data, requested_callsign, control_area):
+    def print_callsign_data(self, callsign_data, requested_callsign, control_area, strip_type):
         
         # callsign_data = self.data_collector.get_callsign_data(requested_callsign)
         if requested_callsign == "" or None:
@@ -32,7 +32,8 @@ class Printer:
             else:
                 print("blank")
 
-        elif callsign_data is not None and control_area['stripType'] != "arrival": #Print "departure" or "both" strips
+        # elif callsign_data is not None and control_area['stripType'] != "arrival": #Print "departure" or "both" strips 
+        elif callsign_data is not None and strip_type != "arrival": #Print "departure" or "both" strips 
             callsign = callsign_data['callsign']
             departure_airport = callsign_data['flight_plan']['departure']
             ac_type = callsign_data['flight_plan']['aircraft_faa']
@@ -64,7 +65,7 @@ class Printer:
                 print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {flightplan}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
                
                    
-        elif callsign_data is not None and control_area['stripType'] != "departure": #Temporary for arrival strips
+        elif callsign_data is not None and strip_type != "departure": #Temporary for arrival strips
             callsign = callsign_data['callsign']
             ac_type = callsign_data['flight_plan']['aircraft_faa']
             ac_type = self.format_actype(ac_type)
@@ -84,7 +85,8 @@ class Printer:
                 amendment_number = ""
 
             aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
-            eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
+            # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
+            eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], destination)
 
             if self.printer:  #Check to see if we want to print paper strips
                 self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = destination, pos9C=remarks)
@@ -384,7 +386,7 @@ class Printer:
             return transition
 
     def calculate_eta(self, aircraft_position:tuple, aircraft_groundspeed:int, coordination_fix):
-        #So that we still get something that prints (30 minutes to coordination fix), even if someone files something stupid
+        #So that we still get something that prints (6 minutes to coordination fix), even if someone files something stupid
         failsafe_min = time.gmtime().tm_min + 30
         failsafe_hour = time.gmtime().tm_hour
 
@@ -401,15 +403,20 @@ class Printer:
             distance = distance * 60 # Convert from Decimal to Nautical Miles
 
             #Step two: Calculate time to coordination fix.
-            aircraft_groundspeed = aircraft_groundspeed - 0 #In case we wanna take into account the fact that airplanes 
+
+            if aircraft_groundspeed < 15: #If the aircraft arrived, let's try to not error
+                aircraft_groundspeed = 100000
+
+           # aircraft_groundspeed = aircraft_groundspeed - 0 #In case we wanna take into account the fact that airplanes 
                                                             #at lower altitudes will be moving slower... (the system catches them at cruise)
             timetogo = distance / aircraft_groundspeed
             timetogo = int(timetogo * 60)
-            #Step three: If airplane is on the ground (or bugsmasher in bad headwind), do NOT overwrite the failsafe time
+            #old step 3 cuz this is fuckin dumb Step three: If airplane is on the ground (or bugsmasher in bad headwind), do NOT overwrite the failsafe time
             #If they are NOT on the ground, add the "time to go" to the thingy
-            if aircraft_groundspeed > 45:
-                failsafe_min = time.gmtime().tm_min + timetogo
-                failsafe_hour = time.gmtime().tm_hour
+            # if aircraft_groundspeed > 45:
+            failsafe_min = time.gmtime().tm_min + timetogo
+            failsafe_hour = time.gmtime().tm_hour
+
 
         except: #Perhaps, one day, make it so that this just takes their distance to the destination airport
             print(f"Error determining time to {coordination_fix}. Time to make some shit up!")
