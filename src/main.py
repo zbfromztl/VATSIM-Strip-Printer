@@ -20,7 +20,7 @@ class Main():
         waypoint_database = "./data/waypoint_database.json"
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
-        sigmetJSON = "https://beta.aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
+        sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
         cwasJSON = "https://api.weather.gov/aviation/cwsus/"
        
         cached_callsign_path = "./data/cached_departures_that_have_been_printed"

@@ -70,16 +70,18 @@ class WXRadio:
                     except:
                         gi_message = i["rawAirSigmet"]
                         self.printer.print_gi_messages(gi_message)
-                        
-                elif type == "AIRMET":
-                 #   for i in rawsigmet:
-                #        gi_message = f'{i}'
-                    try:
-                        gi_message = (f'{rawsigmet[0]}{rawsigmet[1]} {rawsigmet[2]} {rawsigmet[3]} {rawsigmet[4]} {rawsigmet[5]} {rawsigmet[6]}') 
-                    #    gi_message = (f'{rawsigmet[2]} {rawsigmet[3]} {rawsigmet[6]}')
-                        self.printer.print_gi_messages(gi_message)
-                    except:
-                        continue
+
+
+                # AIRMETs are no longer eligible for dissemination in the CONUS
+                # elif type == "AIRMET":
+                #  #   for i in rawsigmet:
+                # #        gi_message = f'{i}'
+                #     try:
+                #         gi_message = (f'{rawsigmet[0]}{rawsigmet[1]} {rawsigmet[2]} {rawsigmet[3]} {rawsigmet[4]} {rawsigmet[5]} {rawsigmet[6]}') 
+                #     #    gi_message = (f'{rawsigmet[2]} {rawsigmet[3]} {rawsigmet[6]}')
+                #         self.printer.print_gi_messages(gi_message)
+                #     except:
+                #         continue
     
     def fetch_cwas(self, api, center):
         api = f'{self.cwasJSON}{(self.airports[self.control_area["airports"][0]]["ARTCC"])}/cwas'
