@@ -146,16 +146,17 @@ class Printer:
                   ^FO55,1177^GB4,122,4^FS
                   ^FB250,1,0,L^FO20,1350^FD{pos1}^ASb,35^FS
                   ^FB200,1,0,L^FO85,1400^FD{pos2}^ASb,35^FS
-                  ^FO145,1540^FD{pos4A}^ASb,35^FS
+                  ^FB200,1,0,L^FO55,1325^FD{pos3}^ASb,20^FS
+                  ^FO160,1540^FD{pos4A}^ASb,35^FS
                   {pos4B}^FS ^FX THIS IS THE BARCODE FOR DEPARTURE STRIPS!
-                  ^FB200,1,0,R^ASb,45,45^FO50,1320^FD{pos2A}^ASb,80^FS
-                  ^FO20,1200^FD{pos5}^ASb,35^FS
+                  ^FB200,1,0,R^ASb,45,45^FO75,1320^FD{pos2A}^ASb,103^FS
+                  ^FO20,1210^FD{pos5}^ASb,35^FS
                   ^FO95,1190^FD{pos6}^ASb,35^FS
-                  ^FO160,1220^FD{pos7}^ASb,35^FS
+                  ^FO160,1190^FD{pos7}^ASb,35^FS
                   ^FO20,1050^FD{pos8}^ASb,35^FS
                   ^FB550,1,0,L^FO20,400^FD{pos9}^ASb,35^FS
                   ^FB500,1,0,L^FO85,450^FD{pos9D}^ASb,35^FS
-                  ^FB500,1,0,L^FO150,450^FD{pos9A}^ASb,35^FS
+                  ^FB500,1,0,L^FO160,450^FD{pos9A}^ASb,35^FS
                   ^FO0,1175^GB203,4,4^FS
                   ^PQ1,0,1,Y
                   ^XZ""")
@@ -185,6 +186,11 @@ class Printer:
             print(f"{message}")
         
     def print_memoryAids(self):
+        # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
+        #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDW/N HRSHL/RONII^FS^XZ""")
+        
+        # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
+        #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDSTOP^FS^XZ""")
         print("STOP")
         print("\\\\\\ NO LUAW ///")
         print("S/E SLAWW/FUTBL")
@@ -212,7 +218,7 @@ class Printer:
         if remark_string.strip() == "":
             return ""
         
-        # Split remark text into two sections and takes the data in the second half. Essentially deletes PBN data from the text. If no RMK/ exits, it will just use the first 18 characters
+        # Split remark text into two sections and takes the data in the second half. Essentially deletes PBN data from the text. If no RMK/ exits, it will just use the first 22 characters
         if "RMK/" in remark_string:
             string_list = remark_string.split("RMK/")
         else:
@@ -224,9 +230,9 @@ class Printer:
             ret_string = string_list[0]
         # If the remaining remarks string has more than 22 characters, cut it down to 22 & append a '***' to the end
         if(len(ret_string)) < 22:
-            return f"░{ret_string}"
+            return f"°{ret_string}"
         else:
-            return f"░{ret_string}***"
+            return f"°{ret_string}***"
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
@@ -242,6 +248,7 @@ class Printer:
             is_route_amended = True
 
         modified_flightplan = modified_flightplan.replace(".", " ")
+        modified_flightplan = modified_flightplan.replace("/", " ") #This should fix the removal of fixes that have stepclimbs associated with them?
         modified_flightplan = modified_flightplan.strip()
         # split flightplan into a list of the routes waypoints
         flightplan_list = modified_flightplan.split(' ')
@@ -302,7 +309,7 @@ class Printer:
             formatted_altitude = f"00{formatted_altitude}"
         elif len(formatted_altitude) < 3:
             formatted_altitude = f"0{formatted_altitude}"
-        return formatted_altitude
+        return f'{formatted_altitude}    '
     
     def match_ATL_exit_fix(self, flightplan):
         exit_fixes={
@@ -349,7 +356,7 @@ class Printer:
         r1 = str(random.randint(0,9))
         r2 = str(random.randint(0,9))
         r3 = str(random.randint(0,9))
-        if "blind" in lower_remarks:
+        if "blind" in lower_remarks or "vision" in lower_remarks:
             r2 = "B"
 
         if "/t/" in lower_remarks:
@@ -430,7 +437,17 @@ class Printer:
             "V333":"ERLIN",
             "V325":"CARAN",
             "V222":"HONIE",
-            "V179":"SINCA"
+            "V179":"SINCA",
+
+            "APPLS":"AWSON", #SAT/DEHAN
+            "SCNRY":"AWSON",
+            "VIEWS":"AWSON",
+            "MILBY":"AWSON",
+            "LPTON":"BIZKT", #SAT/SWTEE
+            "KISTN":"LUKIE", #SAT/WRGNZ
+            "DBOLT":"LUKIE",
+            "MMMOE":"MUARY",
+            "SHRLT":"MUARY"
         }
         try:
             return coordination_fixes[transition]

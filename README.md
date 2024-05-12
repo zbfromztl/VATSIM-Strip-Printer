@@ -16,7 +16,6 @@ Version: Python 3.11.3
   * Clean up Code for new airports. Add new airports. Store in JSON?
   * Add visual flag to scanner elements. Build network for scanner.
   * Add GUI elements to the program
-  *** ADD GI to print strips lol
 
 # Features:
   * Barcode with pilot VATSIM CID on ATL strips (for strip scanning)
@@ -26,6 +25,7 @@ Version: Python 3.11.3
   * Print Hazardous Weather Information
   * Log airport delays & limited logic to determine cause.
   * Data refresh syncs with VATSIM data refresh cycle
+  * GI command to print GI stuff.
   * Others
 
 # Hardware:
@@ -49,7 +49,7 @@ python main.py
 
 # Strip Alignment [To Do]:
  * Strips require manual alignment prior to first print.
- 1. Launch program. Upon launch, alignment strip prints.
+ 1. Launch program. Type "Align" after selecting positions.
  2. Move "line" on alignment strip to mouth of printer. 
 
 # Commands:
