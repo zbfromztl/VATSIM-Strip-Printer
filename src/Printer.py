@@ -259,9 +259,12 @@ class Printer:
             flightplan_list.remove("dct")
         
         #If the departure airport is filed in the flight plan, remove it.
-        if flightplan_list[0] == departure:
-            flightplan_list.pop(0)
-        
+        try:
+            if flightplan_list[0] == departure:
+                flightplan_list.pop(0)
+        except:
+            flightplan_list = []
+
         # removes simbrief crap at start of flightplan
         i=0
         while(i < len(flightplan_list)):
@@ -303,13 +306,21 @@ class Printer:
 
     def format_cruise_altitude(self, altitude:str):
         formatted_altitude = altitude.upper()
-        formatted_altitude = formatted_altitude.replace("FL", "")
-        formatted_altitude = altitude[:-2]
-        if len(formatted_altitude) < 2:
-            formatted_altitude = f"00{formatted_altitude}"
-        elif len(formatted_altitude) < 3:
-            formatted_altitude = f"0{formatted_altitude}"
-        return f'{formatted_altitude}    '
+        if formatted_altitude[:3] == "VFR": #Fix VFR altitude in flight strip for CRC(?)
+            if len(formatted_altitude) > 7:
+                formatted_altitude = formatted_altitude[:7]
+            elif len(formatted_altitude) <= 3:
+                formatted_altitude = f"{formatted_altitude}    "
+        else:
+            formatted_altitude = formatted_altitude.replace("FL", "")
+            formatted_altitude = altitude[:-2]
+            if len(formatted_altitude) < 2:
+                formatted_altitude = f"00{formatted_altitude}    "
+            elif len(formatted_altitude) < 3:
+                formatted_altitude = f"0{formatted_altitude}    "
+            elif len(formatted_altitude) == 3:
+                formatted_altitude = f"{formatted_altitude}    "
+        return formatted_altitude
     
     def match_ATL_exit_fix(self, flightplan):
         exit_fixes={
