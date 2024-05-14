@@ -2,27 +2,30 @@ import time
 import json
 import requests
 from Printer import Printer
+from DataCollector import control_areas
 
-__author__ = "Zackaria Bomenir", "Simon Heck"
+__author__ = "Zackaria Bomenir"
 
 class WXRadio:
     def __init__(self, control_area, printer:Printer, airports, sigmetJSON, cwasJSON) -> None:
         self.sigmet_list = []
         self.cwa_list = []  
-        self.airports = airports['airfields']
+        self.airports = airports
         self.sigmetJSON = sigmetJSON
         self.cwasJSON = cwasJSON
+        self.jurisdictionPath = control_areas
+        self.airportsPath = json.load(open(airports))['airfields']
         self.control_area = []
         self.control_area = control_area
         self.printer = printer
 
     def start_refreshing(self, delay:int = 300):
         self.fetch_sigmet(self.sigmetJSON, self.control_area["airports"])
-        self.fetch_cwas(self.cwasJSON, self.airports[self.control_area["airports"][0]]["ARTCC"])
+        self.fetch_cwas(self.cwasJSON, self.airportsPath[self.control_area["airports"][0]]["ARTCC"])
         time.sleep(self.wxsync())
         while(True):
             self.fetch_sigmet(self.sigmetJSON, self.control_area["airports"])
-            self.fetch_cwas(self.cwasJSON, self.airports[self.control_area["airports"][0]]["ARTCC"])
+            self.fetch_cwas(self.cwasJSON, self.airportsPath[self.control_area["airports"][0]]["ARTCC"])
             time.sleep(delay)
             
 
@@ -43,8 +46,8 @@ class WXRadio:
                 if i["airSigmetId"] not in self.sigmet_list:
                     for fieldlist in control_area:
                         try:
-                            airport_lat = self.airports[fieldlist]["LAT"]
-                            airport_lon = self.airports[fieldlist]["LON"]
+                            airport_lat = self.airportsPath[fieldlist]["LAT"]
+                            airport_lon = self.airportsPath[fieldlist]["LON"]
                             sigmetlat, sigmetlon = u["lat"],u["lon"]
 
                             #Check to see if any point of the sigmet is within 50 nm of the airfield
@@ -61,30 +64,15 @@ class WXRadio:
                 rawsigmet = i["rawAirSigmet"].splitlines()
                 self.sigmet_list.append(i["airSigmetId"])
                 if type == "SIGMET":
-                 #   for i in rawsigmet:
-                 #       gi_message = f'{i}'
-                    try:
-                        gi_message = (f'{rawsigmet[0]}{rawsigmet[1]}{rawsigmet[2]}{rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[5]}... {rawsigmet[6]}{rawsigmet[7]}')
-                    #    self.printer.print_gi_messages(f'{rawsigmet[2]} {rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[6]}{rawsigmet[7]}')
-                        self.printer.print_gi_messages(gi_message)
-                    except:
-                        gi_message = i["rawAirSigmet"]
-                        self.printer.print_gi_messages(gi_message)
-
-
-                # AIRMETs are no longer eligible for dissemination in the CONUS
-                # elif type == "AIRMET":
-                #  #   for i in rawsigmet:
-                # #        gi_message = f'{i}'
-                #     try:
-                #         gi_message = (f'{rawsigmet[0]}{rawsigmet[1]} {rawsigmet[2]} {rawsigmet[3]} {rawsigmet[4]} {rawsigmet[5]} {rawsigmet[6]}') 
-                #     #    gi_message = (f'{rawsigmet[2]} {rawsigmet[3]} {rawsigmet[6]}')
-                #         self.printer.print_gi_messages(gi_message)
-                #     except:
-                #         continue
+                    self.printer.print_gi_messages(f'{rawsigmet[0]}{rawsigmet[1]}{rawsigmet[2]}{rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[5]}... {rawsigmet[6]}{rawsigmet[7]}')
+                #    self.printer.print_gi_messages(f'{rawsigmet[2]} {rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[6]}{rawsigmet[7]}')
+                elif type == "AIRMET":
+                    gi_message = (f'{rawsigmet[0]}{rawsigmet[1]} {rawsigmet[2]} {rawsigmet[3]} {rawsigmet[4]} {rawsigmet[5]} {rawsigmet[6]}') 
+                #    gi_message = (f'{rawsigmet[2]} {rawsigmet[3]} {rawsigmet[6]}')
+                    self.printer.print_gi_messages(gi_message)
     
     def fetch_cwas(self, api, center):
-        api = f'{self.cwasJSON}{(self.airports[self.control_area["airports"][0]]["ARTCC"])}/cwas'
+        api = f'{self.cwasJSON}{(self.airportsPath[self.control_area["airports"][0]]["ARTCC"])}/cwas'
         r = requests.get(api)
         raw = r.json()
         # print(raw)
@@ -101,9 +89,10 @@ class WXRadio:
 
     def wxsync(self):
         #Sync up the time so that if theres a bunch of printers... they all print at the same time?
-        minutes = time.gmtime().tm_min
+        timenow = tuple(time.gmtime())
         
-        while minutes > 5:
+        minutes = timenow[4]
+        while (minutes > 5):
             minutes = minutes - 5
         
         delaytime = ((5 - minutes) * 60) + 60
