@@ -67,8 +67,6 @@ class Printer:
                 amendment_number = ""
 
             line1 = flightplan #Logic for "route" section of flight plan. If the route is not long enough to truncate, keep 'er all together.
-            print(line1[-1:] != ".")
-            print(line1[-1:])
             if line1[-1:] != ".": 
                 line1 = f'{flightplan} {destination}'
                 destination = ""
