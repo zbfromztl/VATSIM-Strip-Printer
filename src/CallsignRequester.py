@@ -40,8 +40,13 @@ class CallsignRequester:
             elif flag == "DROP":
                 callsign_to_print = callsign_to_print[4:].strip()
                 self.scan.dropTime(callsign_to_print)
-            elif flag == "FRC":
-                print("this functionality is still a WIP... lol.")
+            elif flag == "FRC":                                         #prints full strips. This definitely needs to be cleaned up in the future...
+                callsign_to_print = callsign_to_print.upper()
+                if callsign_to_print[0:3] == "SR ":
+                    callsign_to_print = callsign_to_print[3:].strip()
+                if callsign_to_print[0:4] == "FRC ":
+                    callsign_to_print = callsign_to_print[4:].strip()
+                self.printer.print_callsign_data(self.data_collector.get_callsign_data(callsign_to_print), callsign_to_print, self.control_area, "frc")
     
     def request_callsign(self, callsign):
         callsign_to_print = callsign.upper()
@@ -60,6 +65,10 @@ class CallsignRequester:
             return "TIME"
         if callsign_to_print[0:3] == "gi ":
           return "GI_MSG"
+        if callsign_to_print[0:3] == "sr ":
+          return "FRC"
+        if callsign_to_print[0:4] == "frc ":
+          return "FRC"
 
         #What are we doing with this? Depends on what position the guy is working, maybe?
         #If they're NOT working Ground or Local, they shouldn't be scanning strips.

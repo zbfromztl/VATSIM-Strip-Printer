@@ -3,7 +3,7 @@ Version: Python 3.11.3
   * WIP flight progress strips for [vZTL](https://ztlartcc.org), on the [VATSIM Network](https://vatsim.net).
   * Code Author: Simon Heck [(Simon-Heck)](https://github.com/Simon-Heck)
   * Printer Technician: Joey Costello [(JoeyTheDev1)](https://github.com/JoeyTheDev1/)
-  * Technical Advisor: Zack B)
+  * Technical Advisor: [Zack B)](https://github.com/zbfromztl)
 
 # In Progress:
   * Electronic Flight Strip Transfer System (EFSTS) / Networking
@@ -57,9 +57,11 @@ python main.py
  * Times - Prints the current taxi times & associated callsigns.
  * Purge - Clears queue count for delay reporting
  * DROP (Callsign) - Removes cid from queue counter.
- * Align - Prints blank strip with singular line. Align line with mouth of printer.
+ * Align - Prints blank strip with singular line. Align line with mouth of printer to achieve serenity.
+ * FRC (ACID) or SR (ACID) - Prints strip with all flight plan info.
+ * GI (message) - Prints a strip of inputted text.
 
-ARMT commands (ATL only)
+# ARMT commands (ATL only)
  * countproposals - Counts all the aircraft on the ground and organizes it based on filed departure gate.
  * ALL north/center/south - Amends the departure split.
  * {departure} OR {gate} north/center/south - Amends the departure split (to determine queue count).

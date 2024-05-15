@@ -42,6 +42,27 @@ class Printer:
             if self.printer: #Check to see if we want to print paper strips
                 self.zebra.output("^XA^FO0,190^GB203,4,4^FS^XZ")
 
+        elif callsign_data is not None and strip_type == "frc": #Print full strips. This should probably be cleaned up, eventually...
+            callsign = callsign_data['callsign']
+            departure_airport = callsign_data['flight_plan']['departure']
+            ac_type = callsign_data['flight_plan']['aircraft_faa']
+            ac_type = self.format_actype(ac_type)
+            departure_time = f"P{callsign_data['flight_plan']['deptime']}"
+            cruise_alt = self.format_cruise_altitude(callsign_data['flight_plan']['altitude'])
+            flightplan_route = callsign_data['flight_plan']['route']
+            assigned_sq = callsign_data['flight_plan']['assigned_transponder']
+            destination = callsign_data['flight_plan']['arrival']
+            cruise_tas = callsign_data['flight_plan']['cruise_tas']
+            remarks = callsign_data['flight_plan']['remarks']
+            enroute_time = callsign_data['flight_plan']['enroute_time']
+            computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
+
+            strip_requested = f"{computer_id} {callsign} {ac_type} {assigned_sq} {cruise_tas} {cruise_alt} {departure_airport} {flightplan_route} {destination} {remarks}"
+
+            if self.printer:
+                self.print_gi_messages(strip_requested)
+            else:
+                print(strip_requested)
 
         # elif callsign_data is not None and control_area['stripType'] != "arrival": #Print "departure" or "both" strips 
         elif callsign_data is not None and strip_type != "arrival": #Print "departure" or "both" strips 
