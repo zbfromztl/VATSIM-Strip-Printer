@@ -68,3 +68,13 @@ python main.py
  * worst queue or queue count - Generates length of line for departure if all aircraft on the ground were holding short of their runway, according to the departure split.
  * FTD - enables/disables runway 10/28
  * display or current - shows the current split
+
+ # Configuring the Positions File:
+ * Start with Facility
+    - Next in heirarchy are the position(s) within the facililty.
+      - Within each position, list the "airports" to watch out for. Must be found in airports.json.
+      - Type of position (Determines "how far out" the program is looking for each airport & other additional functions, such as strip scanning): CD (Clearance Delivery), GC (Ground Control), LC (Local Control), TAR (Feeder), DR (Departure), TMU, COMBINED 
+      - Auto_Print_strips: true/false
+      - hasBarcode (Departure Strips Only): true/false
+      - stripType: Both/Departure/Arrival
+ * Example setups are already included in program.
