@@ -115,7 +115,10 @@ class Printer:
             remarks=callsign_data['flight_plan']['remarks']
             remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 17)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = str(int(callsign_data['flight_plan']['revision_id'])-1)
+            amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
+            if amendment_number < 1:
+                amendment_number = 0
+            amendment_number = str(amendment_number)
             if amendment_number == '0':
                 amendment_number = ""
 
@@ -229,15 +232,20 @@ class Printer:
         else:
             string_list = remark_string
 
-        if len(string_list) > 1:
-            ret_string = f"{string_list[1][:length]}"
+        if isinstance(string_list,str): #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
+            ret_string = string_list[0:length]
         else:
-            ret_string = string_list[0]
+            if len(string_list) > 1:
+                ret_string = f"{string_list[1][:length]}"
+            else:
+                ret_string = string_list[0:length]
+            
+
         # If the remaining remarks string has more than 22 (or requested number of...) characters, cut it down to 22/requested number & append a '***' to the end
         if(len(ret_string)) < length:
-            return f"°{ret_string}"
+            return f"  {ret_string}" 
         else:
-            return f"°{ret_string}***"
+            return f"  {ret_string}***" #supposedly the euro symbol is mapped to the clear weather symbol...
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
