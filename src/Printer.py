@@ -96,8 +96,6 @@ class Printer:
             if self.printer:  #Check to see if we want to print paper strips
                 time.sleep(1)
                 self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
-                # self.zebra.output(f"^XA^CWK,{self.print_directory}{self.font}^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB250,1,0,L^FO5,1350^FD{callsign}^AKb,35,35^FS^FB200,1,0,L^FO70,1400^FD{ac_type}^AKb,35,35^FS^FO130,1540^FD{computer_id}^AKb,35,35^FS^FO130,1320^BCB,40,N,N,N,A^FD{cid}^FS^FB200,1,0,R^AKb,45,45^FO45,1320^FD{exit_fix}^AKb,80,80^FS^FO5,1200^FD{assigned_sq}^AKb,35,35^FS^FO80,1190^FD{departure_time}^AKb,35,35^FS^FO145,1220^FD{cruise_alt}^AKb,35,35^FS^FO5,1050^FD{departure_airport}^AKb,35,35^FS^FB500,1,0,L^FO5,450^FD{flightplan}^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD{destination}^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD{remarks}^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
-                # self.zebra.output(f"^XA^CWK,{self.print_directory}{self.font}^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB250,1,0,L^FO5,1350^FD{callsign}^AKb,35,35^FS^FB200,1,0,L^FO70,1400^FD{ac_type}^AKb,35,35^FS^FO130,1540^FD{computer_id}^AKb,35,35^FS{cid}^FS^FB200,1,0,R^AKb,45,45^FO35,1300^FD{exit_fix}^AKb,80,80^FS^FO5,1200^FD{assigned_sq}^AKb,35,35^FS^FO80,1190^FD{departure_time}^AKb,35,35^FS^FO145,1220^FD{cruise_alt}^AKb,35,35^FS^FO5,1050^FD{departure_airport}^AKb,35,35^FS^FB550,1,0,L^FO5,400^FD{flightplan}^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD{destination}^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD{remarks}^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
             else:
                 print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {line1}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
                
@@ -115,7 +113,7 @@ class Printer:
             star = arrivalroute[1][:-1]
             assigned_sq = callsign_data['flight_plan']['assigned_transponder']
             remarks=callsign_data['flight_plan']['remarks']
-            remarks = self.format_remarks(callsign_data['flight_plan']['remarks'])
+            remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 17)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
             amendment_number = str(int(callsign_data['flight_plan']['revision_id'])-1)
             if amendment_number == '0':
@@ -125,11 +123,12 @@ class Printer:
             # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
             eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], destination)
 
+            pos_9a = f"{destination} {remarks}"
             if self.printer:  #Check to see if we want to print paper strips
-                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = destination, pos9C=remarks)
+                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = pos_9a, pos9C=remarks)
             else:
                 # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
-                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, destination, remarks, fp_type)
+                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, pos_9a, fp_type)
 
         else:
             airfields = str.replace(str.replace(str.replace(str(list.copy(control_area['airports'])),"'",""),"[",""),"]","")
@@ -138,25 +137,6 @@ class Printer:
     # TODO Redo formatting for positions
     def print_strip(self, pos1:str='', pos2:str='', pos2A:str='', pos3:str='', pos4A:str='', pos4B:str = '', 
                     pos5:str='', pos6:str='', pos7:str='', pos8:str='', pos8A:str='', pos8B='', pos9:str='', pos9A:str='', pos9B:str='', pos9C:str='', pos9D:str = ''):
-        # self.zebra.output(f"""^XA^CWK,{self.print_directory}{self.font}^XZ
-        #                   ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ
-        #                   ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS
-        #                   ^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS
-        #                   ^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS
-        #                   ^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS
-        #                   ^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS
-        #                   ^FB250,1,0,L^FO5,1350^FD{pos1}^AKb,35,35^FS
-        #                   ^FB200,1,0,L^FO70,1400^FD{pos2}^AKb,35,35^FS
-        #                   ^FO130,1540^FD{pos4A}^AKb,35,35^FS{pos4B}^FS
-        #                   ^FB200,1,0,R^AKb,45,45^FO35,1300^FD{pos2A}^AKb,80,80^FS
-        #                   ^FO5,1200^FD{pos5}^AKb,35,35^FS^FO80,1190^FD{pos6}^AKb,35,35
-        #                   ^FS^FO145,1220^FD{pos7}^AKb,35,35^FS^FO5,1050^FD{pos8A}^AKb,35,35^FS
-        #                   ^FB550,1,0,L^FO5,400^FD{pos9}^AKb,35,35^FS
-        #                   ^FB500,1,0,L^FO70,450^FD{pos9D}^AKb,35,35^FS
-        #                   ^FB500,1,0,L^FO135,450^FD{pos9A}^AKb,35,35^FS
-        #                   ^FO0,1175^GB203,4,4^FS
-        #                   ^PQ1,0,1,Y
-        #                   ^XZ""")
         self.zebra.output(f"""^XA^CWS,{self.print_directory}{self.font}^XZ
                   ^XA^ASN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ
                   ^XA^MMT^PW203^LL1624^LS-20
@@ -227,7 +207,7 @@ class Printer:
         route = route.replace("+", "")
         return route
     # TODO Get rid of N0454F360 Shit
-    def format_remarks(self, remark_string:str):
+    def format_remarks(self, remark_string:str, length:int=22):
         # remove voice type
         if "/V/" in remark_string:
             remark_string = remark_string.replace("/V/", "")
@@ -250,11 +230,11 @@ class Printer:
             string_list = remark_string
 
         if len(string_list) > 1:
-            ret_string = f"{string_list[1][:22]}"
+            ret_string = f"{string_list[1][:length]}"
         else:
             ret_string = string_list[0]
-        # If the remaining remarks string has more than 22 characters, cut it down to 22 & append a '***' to the end
-        if(len(ret_string)) < 22:
+        # If the remaining remarks string has more than 22 (or requested number of...) characters, cut it down to 22/requested number & append a '***' to the end
+        if(len(ret_string)) < length:
             return f"°{ret_string}"
         else:
             return f"°{ret_string}***"
@@ -318,6 +298,8 @@ class Printer:
         
     def format_arrival_route(self, flightplan:str, destination:str): #Truncates flight plan to last 2 items.
         flightplan = flightplan.replace(destination, "")
+        flightplan = flightplan.replace(".", " ")
+        flightplan = flightplan.replace("/", " ")
         try:
             route_end = flightplan.rsplit(" ",2)
             newroute = route_end[-2], route_end[-1]
