@@ -128,8 +128,8 @@ class Printer:
 
             #Fix formatting of coordiantion fix/STAR
             try:
-                if len(star) < 5: star = f'{star}  '
-                if len(prevfix) < 5: prevfix = f'{prevfix}  '
+                if len(star) < 5: star = f'{star}    '
+                if len(prevfix) < 5: prevfix = f'{prevfix}    '
             except:
                 pass
 
