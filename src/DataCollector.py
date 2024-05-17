@@ -92,6 +92,8 @@ class DataCollector:
     
         if (airplane_lat < northern_latitude and airplane_lat > southern_latitude) and (airplane_long > western_longitude and airplane_long < eastern_longitude):
             return True
+        # else:
+        #     return False
         
     def scan_pilots(self):
         connected_pilots = self.json_file['pilots']
@@ -128,9 +130,10 @@ class DataCollector:
                         # to access, use: self.callsign_list.get(**callsign**)
                         # that will return the portion of the JSON with all of the pilot's info from when the system added them(flightplan, CID, etc.)
                         self.add_callsign_to_dep_list(pilot_callsign, current_pilot, lookfor)
-                    
-                    elif (pilot_departure_airport in tuple(self.control_area['airports'])) and (not self.in_geographical_region_wip(self.control_area['airports'], pilot_departure_airport, lat_long_tuple)) and (pilot_callsign in self.callsign_list):
+
+                    elif self.requires_removal(pilot_callsign, pilot_departure_airport, self.control_area, lat_long_tuple):
                         self.remove_callsign_from_lists(pilot_callsign)
+
             except TypeError as e1:
                 pass        
             except Exception as e2:
@@ -144,11 +147,23 @@ class DataCollector:
                 continue
         
 
+    def requires_removal(self, callsign, filed_dep, airports_list, lat_long): #This is to process when aircraft leave the area of jurisdiction who have previously had strips printed out.
+        result = False
+        if filed_dep in tuple(self.control_area['airports']) and callsign in self.callsign_list:
+            if self.in_geographical_region_wip(airports_list, filed_dep, lat_long):
+                pass
+            else:
+                result = True
+        return result
+        
 
     def remove_callsign_from_lists(self, callsign_to_remove):
-        self.callsign_list.pop(callsign_to_remove)
-        if callsign_to_remove in self.printed_callsigns:
-            self.printed_callsigns.remove(callsign_to_remove)
+        try:
+            self.callsign_list.pop(callsign_to_remove)
+            if callsign_to_remove in self.printed_callsigns:
+                self.printed_callsigns.remove(callsign_to_remove)
+        except:
+            print(f'Error removing {callsign_to_remove}: not found in stored lists.')
 
     def update_json(self, json_url):
         r = requests.get(json_url)
