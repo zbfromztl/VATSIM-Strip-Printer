@@ -80,7 +80,7 @@ class Printer:
             enroute_time = callsign_data['flight_plan']['enroute_time']
             cid = ""
             if control_area['hasBarcode']: #If it should have the barcode, format it here.
-                cid = f"^FO110,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
+                cid = f"^FO120,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
             exit_fix = self.match_ATL_exit_fix(flightplan)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
             amendment_number = str(int(callsign_data['flight_plan']['revision_id'])-1)
@@ -110,10 +110,10 @@ class Printer:
             cruise_alt = self.format_cruise_altitude(callsign_data['flight_plan']['altitude'])
             arrivalroute = self.format_arrival_route(callsign_data['flight_plan']['route'], destination)
             prevfix = self.match_coordination_fix(arrivalroute[0])
-            star = arrivalroute[1][:-1]
+            star = arrivalroute[1]
             assigned_sq = callsign_data['flight_plan']['assigned_transponder']
             remarks=callsign_data['flight_plan']['remarks']
-            remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 17)
+            remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 15)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
             amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
             if amendment_number < 1:
@@ -153,7 +153,7 @@ class Printer:
                   ^FO123,1177^GB4,122,4^FS
                   ^FO55,1177^GB4,122,4^FS
                   ^FB250,1,0,L^FO20,1350^FD{pos1}^ASb,35^FS
-                  ^FB200,1,0,L^FO85,1400^FD{pos2}^ASb,35^FS
+                  ^FB200,1,0,L^FO95,1400^FD{pos2}^ASb,35^FS
                   ^FB200,1,0,L^FO55,1325^FD{pos3}^ASb,20^FS
                   ^FO160,1540^FD{pos4A}^ASb,35^FS
                   {pos4B}^FS ^FX THIS IS THE BARCODE FOR DEPARTURE STRIPS!
@@ -163,7 +163,7 @@ class Printer:
                   ^FO160,1190^FD{pos7}^ASb,35^FS
                   ^FO20,1050^FD{pos8}^ASb,35^FS
                   ^FB550,1,0,L^FO20,400^FD{pos9}^ASb,35^FS
-                  ^FB500,1,0,L^FO85,450^FD{pos9D}^ASb,35^FS
+                  ^FB500,1,0,L^FO95,450^FD{pos9D}^ASb,35^FS
                   ^FB500,1,0,L^FO160,450^FD{pos9A}^ASb,35^FS
                   ^FO0,1175^GB203,4,4^FS
                   ^PQ1,0,1,Y
@@ -210,7 +210,7 @@ class Printer:
         route = route.replace("+", "")
         return route
     # TODO Get rid of N0454F360 Shit
-    def format_remarks(self, remark_string:str, length:int=22):
+    def format_remarks(self, remark_string:str, length:int=25):
         # remove voice type
         if "/V/" in remark_string:
             remark_string = remark_string.replace("/V/", "")
@@ -226,14 +226,15 @@ class Printer:
         if remark_string.strip() == "":
             return ""
         
-        # Split remark text into two sections and takes the data in the second half. Essentially deletes PBN data from the text. If no RMK/ exits, it will just use the first 22 characters
+        # Split remark text into two sections and takes the data in the second half. Essentially deletes PBN data from the text, except if theres no RMK/. If no RMK/ exits, it will just use the first 22 characters
         if "RMK/" in remark_string:
             string_list = remark_string.split("RMK/")
         else:
             string_list = remark_string
 
         if isinstance(string_list,str): #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
-            ret_string = string_list[0:length]
+            pass
+            # ret_string = string_list[0:length-1]
         else:
             if len(string_list) > 1:
                 ret_string = f"{string_list[1][:length]}"
@@ -245,7 +246,7 @@ class Printer:
         if(len(ret_string)) < length:
             return f"  {ret_string}" 
         else:
-            return f"  {ret_string}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+            return f"  {ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
@@ -310,7 +311,14 @@ class Printer:
         flightplan = flightplan.replace("/", " ")
         try:
             route_end = flightplan.rsplit(" ",2)
-            newroute = route_end[-2], route_end[-1]
+            if route_end[-1].isalpha():                     #If the route does not end with a procedure (such as a STAR)...
+                newroute = route_end[-2], route_end[-1]     #Send it back as is to the strip
+            else:                                           #If it does end with a procedure
+                if len(route_end[-1]) > 5:                  #Remove the number (RNAV/Fix STARS)
+                    star = route_end[-1][:5]
+                else:                                       #Remove the number (VOR STARS)
+                    star = f'{route_end[-1][:3]}  '
+                newroute = route_end[-2], star
             #print(route_end)
            # newroute = "hey"#route_end[-2:]
             #print(newroute)
