@@ -88,7 +88,7 @@ class Printer:
                 amendment_number = ""
 
             line1 = flightplan #Logic for "route" section of flight plan. If the route is not long enough to truncate, keep 'er all together.
-            if line1[-1:] != ".": 
+            if line1[-1:] != "." and len(line1) < 24: 
                 line1 = f'{flightplan} {destination}'
                 destination = ""
             #print flight strip on printer
@@ -125,6 +125,13 @@ class Printer:
             aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
             # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
             eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], destination)
+
+            #Fix formatting of coordiantion fix/STAR
+            try:
+                if len(star) < 5: star = f'{star}  '
+                if len(prevfix) < 5: prevfix = f'{prevfix}  '
+            except:
+                pass
 
             pos_9a = f"{destination} {remarks}"
             if self.printer:  #Check to see if we want to print paper strips
@@ -243,10 +250,14 @@ class Printer:
             
 
         # If the remaining remarks string has more than 22 (or requested number of...) characters, cut it down to 22/requested number & append a '***' to the end
-        if(len(ret_string)) < length:
-            return f"  {ret_string}" 
-        else:
-            return f"  {ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+        try:
+            if ret_string is not None:
+                if(len(ret_string)) < length:
+                    return f"  {ret_string}" 
+                else:
+                    return f"  {ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+        except:
+            return ""
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
@@ -317,7 +328,7 @@ class Printer:
                 if len(route_end[-1]) > 5:                  #Remove the number (RNAV/Fix STARS)
                     star = route_end[-1][:5]
                 else:                                       #Remove the number (VOR STARS)
-                    star = f'{route_end[-1][:3]}  '
+                    star = route_end[-1][:3]
                 newroute = route_end[-2], star
             #print(route_end)
            # newroute = "hey"#route_end[-2:]
