@@ -21,7 +21,6 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
-        # self.zebra.output("^XA^CWG,E:FlightStripPrinter.FNT^XZ")
         pass
 
     def input_callsign():
@@ -41,6 +40,8 @@ class Printer:
             # Print flight strip to align correctly
             if self.printer: #Check to see if we want to print paper strips
                 self.zebra.output("^XA^FO0,190^GB203,4,4^FS^XZ")
+            else:
+                print("aligning!!")
 
         elif callsign_data is not None and strip_type == "frc": #Print full strips. This should probably be cleaned up, eventually...
             callsign = callsign_data['callsign']
@@ -64,7 +65,6 @@ class Printer:
             else:
                 print(strip_requested)
 
-        # elif callsign_data is not None and control_area['stripType'] != "arrival": #Print "departure" or "both" strips 
         elif callsign_data is not None and strip_type != "arrival": #Print "departure" or "both" strips 
             callsign = callsign_data['callsign']
             departure_airport = callsign_data['flight_plan']['departure']
@@ -91,8 +91,8 @@ class Printer:
             if line1[-1:] != "." and len(line1) < 24: 
                 line1 = f'{flightplan} {destination}'
                 destination = ""
-            #print flight strip on printer
 
+            #print flight strip on printer
             if self.printer:  #Check to see if we want to print paper strips
                 time.sleep(1)
                 self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
@@ -179,8 +179,6 @@ class Printer:
     def print_gi_messages(self, message):
         message = message.upper()
         if self.printer: #Check to see if we want to print paper strips
-            # self.zebra.output(f"^XA^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FS^FB1590,4,3,L,25^FO0,10^FD{message}^A0b,40,40^XZ")
-            # self.zebra.output(f"^XA^MMT^PW203^LL1624^LS-20^FS^FB1590,4,3,L,25^FO0,10^FD{message}^AGKb,40,40^XZ")
             self.zebra.output(f""" ^XA ^CWS,{self.print_directory}{self.font} ^XZ
                               
                               ^XA 
@@ -196,7 +194,6 @@ class Printer:
                               ^ASB,55
                               ^FD{message}^FS 
                               ^XZ""")
-            # self.zebra.output(f"^XA^CWK,FLIGHTSTRIPPRINT.TTF^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FS^FB1590,4,3,L,25^FO0,10^FD{message}^AKb,35,35^XZ")
         else:
             print(f"{message}")
         
@@ -330,9 +327,7 @@ class Printer:
                 else:                                       #Remove the number (VOR STARS)
                     star = route_end[-1][:3]
                 newroute = route_end[-2], star
-            #print(route_end)
-           # newroute = "hey"#route_end[-2:]
-            #print(newroute)
+
         except:
             print("error with route")
             newroute = ['UNKN', 'UNKN']
