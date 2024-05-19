@@ -83,7 +83,10 @@ class Printer:
                 cid = f"^FO120,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
             exit_fix = self.match_ATL_exit_fix(flightplan)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = str(int(callsign_data['flight_plan']['revision_id'])-1)
+            amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
+            if amendment_number < 1:
+                amendment_number = 0
+            amendment_number = str(amendment_number)
             if amendment_number == '0':
                 amendment_number = ""
 
@@ -314,6 +317,7 @@ class Printer:
             return build_string.strip()
         
     def format_arrival_route(self, flightplan:str, destination:str): #Truncates flight plan to last 2 items.
+        flightplan = flightplan.replace(f" {destination}", "") #Remove the ending if theres a space infront of the destination. TODO rewrite this lol
         flightplan = flightplan.replace(destination, "")
         flightplan = flightplan.replace(".", " ")
         flightplan = flightplan.replace("/", " ")
@@ -322,7 +326,7 @@ class Printer:
             if route_end[-1].isalpha():                     #If the route does not end with a procedure (such as a STAR)...
                 newroute = route_end[-2], route_end[-1]     #Send it back as is to the strip
             else:                                           #If it does end with a procedure
-                if len(route_end[-1]) > 5:                  #Remove the number (RNAV/Fix STARS)
+                if 9 > len(route_end[-1]) > 5:              #Remove the number (RNAV/Fix STARS)
                     star = route_end[-1][:5]
                 else:                                       #Remove the number (VOR STARS)
                     star = route_end[-1][:3]
