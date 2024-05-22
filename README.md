@@ -6,17 +6,17 @@ Version: Python 3.11.3
   * Technical Advisor: [Zack B)](https://github.com/zbfromztl)
 
 # In Progress:
-  [ ] Electronic Flight Strip Transfer System (EFSTS) / Networking
-  [ ] Print all the memory aid things
-  [ ] Add more comments and documentation
+ - [ ] Electronic Flight Strip Transfer System (EFSTS) / Networking
+ - [ ] Print all the memory aid things
+ - [ ] Add more comments and documentation
 
 # To do:
-  [ ] Make starting text prompts easier to understand
-  [ ] Don't print VFR strips/Don't print amended VFR strips?
-  [x] Clean up Code for new airports. Add new airports. Store in JSON?
-  [ ] EFSTS needs to actually track SIGMETs in order to charge to SIGMETs... lol
-  [ ] Add visual flag to scanner elements. Build network for scanner.
-  [ ] Add GUI elements to the program
+ - [ ] Make starting text prompts easier to understand
+ - [ ] Don't print VFR strips/Don't print amended VFR strips?
+ - [x] Clean up Code for new airports. Add new airports. Store in JSON?
+ - [ ] EFSTS needs to actually track SIGMETs in order to charge to SIGMETs... lol
+ - [ ] Add visual flag to scanner elements. Build network for scanner.
+ - [ ] Add GUI elements to the program
 
 # Features:
   * Barcode with pilot VATSIM CID on ATL strips (for strip scanning)
