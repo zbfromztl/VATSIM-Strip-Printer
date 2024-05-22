@@ -37,7 +37,7 @@ class Scanner:
         self.maxReportedDelay = 0
 
     def scan(self, callsign):
-        position = self.controlType
+        position = self.controlType.upper()
         if position == "GC":
             self.start_clock(callsign)
         elif position == "LC":

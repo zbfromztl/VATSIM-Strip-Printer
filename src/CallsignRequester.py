@@ -72,7 +72,8 @@ class CallsignRequester:
 
         #What are we doing with this? Depends on what position the guy is working, maybe?
         #If they're NOT working Ground or Local, they shouldn't be scanning strips.
-        if self.control_area["type"] != "GC" and self.control_area["type"] != "LC": 
+        control_area_type = self.control_area["type"].upper()
+        if control_area_type != "GC" and control_area_type != "LC": 
             return "Print"
         else:
             if len(callsign_to_print) < 6: #If the callsign is less than 6 characters, it can NOT be a CID. Therefore, we're printing a flight strip.    

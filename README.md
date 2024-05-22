@@ -46,8 +46,9 @@ Run python on [main.py](src/main.py). For example:
 ```
 python main.py
 ```
+Note that the program may overwrite settings that are already on your printer... so you may want to save those before running it.
 
-# Strip Alignment [To Do]:
+# Strip Alignment [doesn't work lol]:
  * Strips require manual alignment prior to first print.
  1. Launch program. Type "Align" after selecting positions.
  2. Move "line" on alignment strip to mouth of printer. 
