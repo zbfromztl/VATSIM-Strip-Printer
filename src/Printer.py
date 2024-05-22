@@ -5,7 +5,7 @@ import json
 import math
 
 
-__author__ =  "Simon Heck", "Zack B"
+__author__ = "Simon Heck", "Zack B"
 
 class Printer:
     def __init__(self, acrft_json, do_we_print, wp_db, font) -> None:

@@ -199,6 +199,7 @@ class Scanner:
         for condition in wx:
             if condition in textDescription:
                 wxCharge = wx[condition]
+                print(wxCharge)
                 continue
         
         if len(self.queue) >= self.reportInterval + self.averageTaxiTime:

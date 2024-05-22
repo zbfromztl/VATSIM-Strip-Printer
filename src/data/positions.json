@@ -12,7 +12,6 @@
     "PDK":{ "PDK-CD":{"airports":["KPDK"],"type":"CD","auto_Print_Strips":true,"hasBarcode":false,"stripType":"departure"}},
     "ZID":{ "ZID-FD":{"airports":["KAID", "KBMG", "KBAK", "KEVV", "KIND", "KMIE", "KHBE", "KHUF", "KCVG", "KFTK", "KLEX", "KSDF", "KLOU", "KOWB", "KLUK", "KTZR", "KLCK", "KOSU", "KCMH", "KDAY", "KFFO", "KILN", "KCRW", "KHTS", "KPKB"],"type":"COMBINED","auto_Print_Strips":true,"hasBarcode":false,"stripType":"both"}},
     "ZBW":{ "ZBW-FD":{"airports":["KBOS", "KGON", "KHFD", "KBDL", "KBGR", "KPWM", "KBED", "KBVY", "KHYA", "KLWM", "KACK", "KEWB", "KOWD", "KCEF", "KMVY", "KBAF", "KORH", "KLEB", "KMHT", "KASH", "KPSM", "KALB", "KGTB", "KRME", "KSCH", "KSYR", "KOQU", "KPVD", "KBTV"],"type":"COMBINED","auto_Print_Strips":true,"hasBarcode":false,"stripType":"both"}}
-
 },
 "delayReporting":{"averageTaxiTime":10,"discordWebhook":"https://discord.com/api/webhooks/1124601273078005830/Nf2AARyX5Gif_gszLx4qYfp6Jf4_2p_4OfBhExtz-yMES84F3SQMscfFq5UTxkyunIEf"},
 "fence_data":{"CD":0.026079,"GC":0.026079,"TMU":0.026079,"LC":0.026079,"TAR":1.5,"COMBINED":1}
