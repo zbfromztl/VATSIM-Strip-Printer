@@ -163,7 +163,8 @@ class Main():
 
         # start other threads
         JSON_timer.start()
-        if control_area["type"] != "TMU":
+        type_of_position = control_area["type"].upper()
+        if type_of_position != "TMU":
             user_input.start()
         else:
             airspace.start()
@@ -171,7 +172,7 @@ class Main():
         if enablewxradio:
             wxradio.start()
 
-        if control_area['type'] == "GC" or control_area['type'] == "LC":
+        if type_of_position == "GC" or type_of_position == "LC":
             scans.start()
         
         

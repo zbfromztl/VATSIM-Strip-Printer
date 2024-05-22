@@ -6,16 +6,17 @@ Version: Python 3.11.3
   * Technical Advisor: [Zack B)](https://github.com/zbfromztl)
 
 # In Progress:
-  * Electronic Flight Strip Transfer System (EFSTS) / Networking
-  * Print all the memory aid things
-  * Add more comments and documentation
+ - [ ] Electronic Flight Strip Transfer System (EFSTS) / Networking
+ - [ ] Print all the memory aid things
+ - [ ] Add more comments and documentation
 
 # To do:
-  * Make starting text prompts easier to understand
-  * Don't print VFR strips/Don't print amended VFR strips?
-  * Clean up Code for new airports. Add new airports. Store in JSON?
-  * Add visual flag to scanner elements. Build network for scanner.
-  * Add GUI elements to the program
+ - [ ] Make starting text prompts easier to understand
+ - [ ] Don't print VFR strips/Don't print amended VFR strips?
+ - [x] Clean up Code for new airports. Add new airports. Store in JSON?
+ - [ ] EFSTS needs to actually track SIGMETs in order to charge to SIGMETs... lol
+ - [ ] Add visual flag to scanner elements. Build network for scanner.
+ - [ ] Add GUI elements to the program
 
 # Features:
   * Barcode with pilot VATSIM CID on ATL strips (for strip scanning)
@@ -46,8 +47,12 @@ Run python on [main.py](src/main.py). For example:
 ```
 python main.py
 ```
+<sub>Note that the program may overwrite settings that are already on your printer... 
+so you may want to save those before running it. Additionally, you need to define
+the font of the flight strips to be used in main.py. You can send open communication
+with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all available fonts. </sub>
 
-# Strip Alignment [To Do]:
+# Strip Alignment [doesn't work lol]:
  * Strips require manual alignment prior to first print.
  1. Launch program. Type "Align" after selecting positions.
  2. Move "line" on alignment strip to mouth of printer. 

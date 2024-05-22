@@ -37,7 +37,7 @@ class Scanner:
         self.maxReportedDelay = 0
 
     def scan(self, callsign):
-        position = self.controlType
+        position = self.controlType.upper()
         if position == "GC":
             self.start_clock(callsign)
         elif position == "LC":
@@ -199,6 +199,7 @@ class Scanner:
         for condition in wx:
             if condition in textDescription:
                 wxCharge = wx[condition]
+                print(wxCharge)
                 continue
         
         if len(self.queue) >= self.reportInterval + self.averageTaxiTime:
