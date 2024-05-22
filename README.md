@@ -46,7 +46,10 @@ Run python on [main.py](src/main.py). For example:
 ```
 python main.py
 ```
-Note that the program may overwrite settings that are already on your printer... so you may want to save those before running it.
+<sub>Note that the program may overwrite settings that are already on your printer... 
+so you may want to save those before running it. Additionally, you need to define
+the font of the flight strips to be used in main.py. You can send open communication
+with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all available fonts. </sub>
 
 # Strip Alignment [doesn't work lol]:
  * Strips require manual alignment prior to first print.
