@@ -1,6 +1,5 @@
 import random
 from zebra import Zebra
-from CallsignRequester import CallsignRequester
 import time
 import json
 import math
