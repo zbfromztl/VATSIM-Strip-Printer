@@ -20,6 +20,7 @@ class Network():
       self.is_server_host = True
     if Privacy_mode == False: #Privacy Mode is only togglable in this file. If its DISABLED, it should show the user their IP and PORT so that other machines can connect.
       print(f"Server IP set to {self.server_ip}. Port number {self.server_port}.")
+    self.header_len = 7
     self.network_devices = dict() #This is a list of all available "devices" on our server. Really, it should just list each position thats connected.
     self.target_machines = set()  #This is a list of printers that we want our strips to go out to.
     
@@ -50,10 +51,17 @@ class Network():
   def relay_strips(self, client_sock):
     print(":)")
 
+  def server_recieve_request(self):
+    try:
+      message = self.socket.recv(self.header_len)      #gotta add the header info to process how much data to process for GI shit... damn...
+      
+    except:
+      return False  
+
   def recieve_strips(self):
     while self.network_active:                           #Let us break it off if we want to eventually lol
       try:
-        data = self.socket.recv().decode('utf-8')
+        data = self.socket.recv(self.header_len).decode('utf-8')
         print(data)
       except:
         print(f"Error!")
