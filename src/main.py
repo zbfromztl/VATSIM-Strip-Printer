@@ -107,7 +107,7 @@ class Main():
        
         # ----- Networking Initialization:
         do_network = False
-        while(self.allowNetwork):
+        while(allowNetwork):
             try:
                 is_on_network = False
                 do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
