@@ -15,17 +15,17 @@ class Network():
       server_ip = socket.gethostname()
     if Privacy_mode = false:
       print(f"Server IP set to {server_ip}.")
-    departure_printers = set()
+    departure_printers = dict()
     
     #TODO: Add logic to connect to server if it isn't "this" machine.
     #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
     #TODO: Process "send strip to departure" message. 
 
   def run_server(self):
-    s = self.s
+    server_socket = self.s
     try:  #This logic is flawed (it throws an error and then continues to attempt the server lol)
-      s.bind(int(self.server_ip), int(self.port))
-      s.listen(6)
+      server_socket.bind(int(self.server_ip), int(self.port))
+      server_socket.listen(6)
     except:
       print(Unable to initialize server.)
     while True:
