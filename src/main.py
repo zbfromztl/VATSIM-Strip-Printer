@@ -20,6 +20,7 @@ class Main():
         waypoint_database = "./data/waypoint_database.json"
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT"
+        allowNetwork = False
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -103,7 +104,20 @@ class Main():
             print(f"Setting your position to {control_area[0]}.")
             printerpositiondefault = tuple((user_facility.items()))
             control_area = user_facility[printerpositiondefault[0][0]]
-
+       
+        # ----- Networking Initialization:
+        do_network = False
+        while(self.allowNetwork):
+            try:
+                is_on_network = False
+                do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
+                do_we_network = bool(int(do_network))
+                if do_we_network: 
+                    do_network = True
+                break
+            except ValueError:
+                print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
+    
         # -----Print all Departures-----
         while(True):
             try:
