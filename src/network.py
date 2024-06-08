@@ -1,4 +1,5 @@
 import socket
+from Printer import Printer
 
 #Well, that's all folks!
 class Network():
@@ -6,6 +7,7 @@ class Network():
     #Config network data.
     Privacy_mode = False
     self.is_server_host = False
+    self.network_active = False
     self.server_port = 9511
     print("Initializing electronic flight strip transfer system configurator...")
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,13 +37,23 @@ class Network():
     #   print("Unable to initialize server.")
 
     while True:
-      clientsocket, address = self.server_socket.accept()
+      clientsocket, address = self.socket.accept()
 
-  def join_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
-    self.socket.connect(self.server_ip, self.server_port)
-  
+  def join_server(self, position): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
+    self.socket.connect(self.server_ip, self.server_port) #Connect to server
+    self.socket.setblocking(False)                        #Set connection to non-blocking state
+    printer_name = position.encode("utf-8")               #On initial contact, format name to server "who" we are
+    self.socket.send(printer_name)                        #Send server who we are
+    self.network_active = True
+    self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
+      
   def relay_strips(self, client_sock):
     print(":)")
 
   def recieve_strips(self):
-    print("ok")
+    while self.network_active:                           #Let us break it off if we want to eventually lol
+      try:
+        data = self.socket.recv().decode('utf-8')
+        print(data)
+      except:
+        print(f"Error!")
