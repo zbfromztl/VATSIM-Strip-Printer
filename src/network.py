@@ -8,7 +8,7 @@ class Network():
     self.is_server_host = False
     self.server_port = 9511
     print("Initializing electronic flight strip transfer system configurator...")
-    self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #Determine "where" server is.
     self.server_ip = ""
     self.server_ip = input("Please input the IP of the server. Leave blank if this machine is the server: ")
@@ -24,15 +24,24 @@ class Network():
     #TODO: Add logic to connect to server if it isn't "this" machine.
     #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
     #TODO: Process "send strip to departure" message.
+    #TODO EVENTUALLY: Store times on here lol.
 
-  def run_server(self):
+  def run_server(self): #https://pythonprogramming.net/server-chatroom-sockets-tutorial-python-3/
     #try:  #This logic is flawed (it throws an error and then continues to attempt the server lol)
-    self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    self.server_socket.bind(self.server_ip, self.server_port)
-    self.server_socket.listen()
+    self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    self.socket.bind(self.server_ip, self.server_port)
+    self.socket.listen()
     # except:
     #   print("Unable to initialize server.")
 
     while True:
       clientsocket, address = self.server_socket.accept()
-      
+
+  def join_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
+    self.socket.connect(self.server_ip, self.server_port)
+  
+  def relay_strips(self, client_sock):
+    print(":)")
+
+  def recieve_strips(self):
+    print("ok")
