@@ -13,3 +13,8 @@ class Network():
     if server_ip = "":
       server_ip = socket.gethostname()
     print(f"Server IP set to {server_ip}.")
+    departure_printers = set()
+    
+    #TODO: Add logic to connect to server if it isn't "this" machine.
+    #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
+    #TODO: Process "send strip to departure" message. 
