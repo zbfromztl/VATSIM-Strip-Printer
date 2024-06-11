@@ -108,6 +108,7 @@ class Main():
        
         # ----- Networking Initialization:
         do_network = False
+        is_server = False
         while(allowNetwork):
             try:
                 is_on_network = False
@@ -119,7 +120,6 @@ class Main():
             except ValueError:
                 print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
-        if do_network: Network()
     
         # -----Print all Departures-----
         while(True):
@@ -155,6 +155,7 @@ class Main():
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
+        server_manager = Network(control_area)
 
 
         # initial data grab
@@ -172,6 +173,11 @@ class Main():
         scans = threading.Thread(target=efsts.opsNet)
         airspace = threading.Thread(target=airspacemanagement.getSplit)
 
+        # Thread6: Start server
+        if server_manager:
+            threading.Thread(target=server_manager.run_server)
+
+        
         print("Would you like Hazardous Weather Advisories?")
         enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
 

@@ -7,8 +7,10 @@ from CallsignRequester import CallsignRequester
 
 #Well, that's all folks!
 class Network():
-    def __init__(self) -> None:
+    def __init__(self, control_area):
         self.debug_mode = True #For dev work... lol
+        #config initalization
+        self.control_area = control_area
         #Config network data.
         Privacy_mode = False
         self.is_server_host = False
@@ -29,10 +31,9 @@ class Network():
         if self.debug_mode: print(f"Header length is set to {self.header_len}.")
         self.network_devices = dict() #This is a list of all available "devices" on our server. Really, it should just list each position thats connected.
         self.target_machines = set()  #This is a list of printers that we want our strips to go out to.
+        return self.is_server_host
 
 
-        if self.is_server_host:
-            self.run_server()
         #TODO: Add logic to connect to server if it isn't "this" machine.
         #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
         #TODO: Process "send strip to departure" message.
