@@ -1,5 +1,6 @@
 import socket
 import select
+import errno
 from Printer import Printer
 
 #Well, that's all folks!
@@ -76,14 +77,28 @@ class Network():
                 sockets_list.remove(notified_socket)
                 del network_devices[notified_socket]
 
-    def join_server(self, position): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
+    def use_server(self, position): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
         self.socket.connect(self.server_ip, self.server_port) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
         printer_name = position.encode("utf-8")               #On initial contact, format name to server "who" we are
+        printer_name_header = f"{len(printer_name):<{self.header_len}}".encode('utf-8')
         self.socket.send(printer_name)                        #Send server who we are
         self.network_active = True
-        self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
-        
+        # self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
+        try:
+            while True:
+                printer_name_header = client_socket.recv(self.header_len)
+                if not len(printer_name_header): print("Connection closed by server...")
+                acid_header = client_socket.recv(self.header_len)
+                acid_len = int(acid_header.decode('utf-8').strip())
+                acid = client_socket.recv(acid_len).decode('utf-8')
+        except IOError as e:
+            if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
+                print('Network Client Error: {}'.format(str(e)))
+            continue #Didn't recieve anything
+        except Exception as e:
+            print('Network Client Error: {}'.format(str(e)))
+
     def relay_strips(self, client_sock):
         print(":)")
 
@@ -97,10 +112,10 @@ class Network():
         except:
             return False  
 
-    def recieve_strips(self):
-        while self.network_active:                           #Let us break it off if we want to eventually lol
-            try:
-                data = self.socket.recv(self.header_len).decode('utf-8')
-                print(data)
-            except:
-                print(f"Error!")
+    # def recieve_strips(self):
+    #     while self.network_active:                           #Let us break it off if we want to eventually lol
+    #         try:
+    #             data = self.socket.recv(self.header_len).decode('utf-8')
+    #             print(data)
+    #         except:
+    #             print(f"Error!")
