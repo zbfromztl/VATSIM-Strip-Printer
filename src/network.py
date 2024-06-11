@@ -21,7 +21,7 @@ class Network():
         self.server_ip = input("Please input the IP of the server. Leave blank if this machine is the server: ")
         self.server_ip = self.server_ip.strip()
         if self.server_ip == "":
-            self.server_ip = socket.gethostbyname(socket.gethostname())
+            self.server_ip = socket.gethostbyname(socket.getfqdn())
             self.is_server_host = True
         if Privacy_mode == False: #Privacy Mode is only togglable in this file. If its DISABLED, it should show the user their IP and PORT so that other machines can connect.
             print(f"Server IP set to {self.server_ip}. Port number {self.server_port}.")
@@ -56,28 +56,28 @@ class Network():
                     client_socket, client_addy = self.socket.accept()
                     if self.debug_mode: print(f"Client {client_socket} connected.")
                     #Station should report name on initial call
-                    user = server_recieve_request(client_socket)
+                    user = self.server_recieve_request(client_socket)
                     if user is False: continue #Client disconnected prior to successful connection
-                    sockets_list.append(client_socket) #Append to select.select list
+                    self.sockets_list.append(client_socket) #Append to select.select list
                     self.network_devices[client_socket] = user #Save client name
                     if self.debug_mode: print('Accepted new connection from {}:{}, station name: {}'.format(*client_addy, user['data'].decode('utf-8')))
                 else:
-                    message = server_recieve_request(notified_socket)
+                    message = self.server_recieve_request(notified_socket)
                     if message is False:
                         if self.debug_mode: print('Closed connection from: {}'.format(self.network_devices[notified_socket]['data'].decode('utf-8')))
-                        sockets_list.remove(notified_socket)
-                        del network_devices[client_socket]
+                        self.sockets_list.remove(notified_socket)
+                        del self.network_devices[client_socket]
                         continue
                     user = self.network_devices[notified_socket]
-                    if self.debug_mode: print(f"Recieved request from {user['data'].decode('utf-8')}: {message['data'].decode('utf-8')]}")
+                    if self.debug_mode: print(f"Recieved request from {user['data'].decode('utf-8')}: {message['data'].decode('utf-8')}")
 
                     #TODO: CONVERT TO ONLY SEND TO SELECTED PRINTERS!
-                    for client_socket in network_devices:
+                    for client_socket in self.network_devices:
                         if client_socket != notified_socket:
                             client_socket.send(user['header']+user['data']+message['header']+message['data'])
             for notified_socket in exception_socket:
-                sockets_list.remove(notified_socket)
-                del network_devices[notified_socket]
+                self.sockets_list.remove(notified_socket)
+                del self.network_devices[notified_socket]
 
     def use_server(self, position): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
         self.socket.connect(self.server_ip, self.server_port) #Connect to server
@@ -89,16 +89,16 @@ class Network():
         # self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
         try:
             while True:
-                printer_name_header = client_socket.recv(self.header_len)
+                printer_name_header = self.socket.recv(self.header_len)
                 if not len(printer_name_header): print("Connection closed by server...")
-                acid_header = client_socket.recv(self.header_len)
+                acid_header = self.socket.recv(self.header_len)
                 acid_len = int(acid_header.decode('utf-8').strip())
-                acid = client_socket.recv(acid_len).decode('utf-8')
+                acid = self.socket.recv(acid_len).decode('utf-8')
                 self.process_inbound(acid)
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                 print('Network Client Error: {}'.format(str(e)))
-            continue #Didn't recieve anything
+            # continue #Didn't recieve anything
         except Exception as e:
             print('Network Client Error: {}'.format(str(e)))
 
