@@ -2,6 +2,8 @@ import socket
 import select
 import errno
 from Printer import Printer
+from DataCollector import DataCollector
+from CallsignRequester import CallsignRequester
 
 #Well, that's all folks!
 class Network():
@@ -92,6 +94,7 @@ class Network():
                 acid_header = client_socket.recv(self.header_len)
                 acid_len = int(acid_header.decode('utf-8').strip())
                 acid = client_socket.recv(acid_len).decode('utf-8')
+                self.process_inbound(acid)
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                 print('Network Client Error: {}'.format(str(e)))
@@ -99,8 +102,14 @@ class Network():
         except Exception as e:
             print('Network Client Error: {}'.format(str(e)))
 
-    def relay_strips(self, client_sock):
-        print(":)")
+    def process_inbound(self, data):
+        if self.debug_mode: print("Processing inbound...")
+        json_file = self.DataCollector.get_json()
+        flag = self.CallsignRequester.determineFlag(data.lower())
+        if flag == "GI_MSG":
+            self.printer.print_gi_messages(data)
+        elif flag == "Print":
+            self.CallsignRequester.request_callsign(data)
 
     def server_recieve_request(self, client_socket):
         try:
