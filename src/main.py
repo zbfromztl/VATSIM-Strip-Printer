@@ -155,7 +155,7 @@ class Main():
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
-        server_manager = Network(control_area)
+        server_manager = Network.initialize_server()
 
 
         # initial data grab
