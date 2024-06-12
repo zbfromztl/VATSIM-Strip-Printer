@@ -225,7 +225,8 @@ class Scanner:
         # if self.do_network: self.network.test_message(callsign, callsign)
         try:
             if self.do_network: 
-                self.network.send_outbound(callsign)
+                self.network.send_outbound(callsign, callsign)
         except:
+            print("Exception in EFSTS")
             print(Exception)
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')

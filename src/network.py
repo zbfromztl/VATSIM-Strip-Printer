@@ -85,20 +85,24 @@ class Network():
                 del self.network_devices[notified_socket]
 
     def use_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
-        self.socket.connect(self.server_ip, self.server_port) #Connect to server
+        print("USINGGGG SERVERRRR")
+        self.socket.connect((self.server_ip, self.server_port)) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
         printer_name = self.control_area.encode("utf-8")               #On initial contact, format name to server "who" we are
         printer_name_header = f"{len(printer_name):<{self.header_len}}".encode('utf-8')
         self.socket.send(printer_name)                        #Send server who we are
+        if self.debug_mode: print(f"Connecting to server...")
         self.network_active = True
         # self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
         try:
             while True:
                 printer_name_header = self.socket.recv(self.header_len)
+                if self.debug_mode: print(f"Server recieved {printer_name_header}.")
                 if not len(printer_name_header): print("Connection closed by server...")
                 acid_header = self.socket.recv(self.header_len)
                 acid_len = int(acid_header.decode('utf-8').strip())
                 acid = self.socket.recv(acid_len).decode('utf-8')
+                if self.debug_mode: print(f"Processing {acid}")
                 self.process_inbound(acid)
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
@@ -140,6 +144,7 @@ class Network():
             print(f"Sending {callsign} to server.")
             self.socket.send(callsign)
         except:
+            print("Exception in NETWORK")
             print(Exception)
 
     # def recieve_strips(self):

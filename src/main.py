@@ -107,16 +107,17 @@ class Main():
             control_area = user_facility[printerpositiondefault[0][0]]
        
         # ----- Networking Initialization:
-        do_network = False
+        # do_network = False
         is_server = False
         while(allowNetwork):
             try:
                 is_on_network = False
                 do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
                 do_we_network = bool(int(do_we_network))
-                if do_we_network: 
-                    do_network = True
                 break
+                # if do_we_network: 
+                #     do_network = True
+                # break
             except ValueError:
                 print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
@@ -155,9 +156,10 @@ class Main():
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
-        server_manager = Network(control_area, printer, data_collector)
+        server_manager = Network("A80-DR", printer, data_collector)
         
         #Determine if we need to run the server or not.
+        print(f"Do we network? {do_we_network}")
         if do_we_network: is_server = server_manager.initialize_networking()
 
 
@@ -178,11 +180,14 @@ class Main():
 
         # Thread6: Start server
         if is_server:
-            threading.Thread(target=server_manager.run_server)
+            threading.Thread(target=server_manager.run_server())
         # Thread7 : Join server
-        if do_we_network: threading.Thread(target=server_manager.use_server)
-
+        if do_we_network: threading.Thread(target=server_manager.use_server())
+        # print("Use server..")
+        # server_manager.use_server()
         
+
+
         print("Would you like Hazardous Weather Advisories?")
         enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
 
