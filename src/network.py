@@ -7,7 +7,7 @@ from CallsignRequester import CallsignRequester
 
 #Well, that's all folks!
 class Network():
-    def __init__(self, control_area):
+    def __init__(self, control_area) -> None:
         self.debug_mode = True #For dev work... lol
         #config initalization
         self.control_area = control_area
