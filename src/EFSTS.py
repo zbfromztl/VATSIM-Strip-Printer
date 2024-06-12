@@ -3,7 +3,7 @@ import time
 import json
 import math
 from DataCollector import DataCollector
-from Network import Network
+from network import Network
 #If theres a SIGMET then default reason -> wx/tstorms>
 
 
@@ -72,7 +72,7 @@ class Scanner:
             totalDelay = (currentTime - startTime) / 60
             totalDelay = math.floor(totalDelay)
             self.totalDelay[callsign] = totalDelay
-            print(self.totalDelay[callsign])
+            print(f"Taxi Time for {callsign}: {self.totalDelay[callsign]}")
             self.queue.pop(callsign)
         self.push_departure(callsign, visualFlag)
 
@@ -105,6 +105,7 @@ class Scanner:
             if aircraft['cid'] is callsign:
                 print(aircraft['callsign'])
                 found = True
+                return aircraft['callsign']
         if found != True:
             print(f"Sorry, I couldn't find {callsign}. Please verify they have not dropped out.")
 
@@ -220,5 +221,7 @@ class Scanner:
             return "OTHER:OTHER"
 
     def push_departure(self, callsign, visualFlag):
-        if do_network: self.network.send_outbound(callsign)
+        # callsign = self.convert_identity(callsign)
+        # if self.do_network: self.network.test_message(callsign, callsign)
+        if self.do_network: self.network.send_outbound(callsign)
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')

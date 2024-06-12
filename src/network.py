@@ -3,15 +3,17 @@ import select
 import errno
 from Printer import Printer
 from DataCollector import DataCollector
-from CallsignRequester import CallsignRequester
+# from CallsignRequester import CallsignRequester
 
 #Well, that's all folks!
 class Network():
-    def __init__(self, control_area) -> None:
+    def __init__(self, control_area, printer:Printer, data_collector:DataCollector) -> None:
         self.debug_mode = True #For dev work... lol
-        Privacy_mode = False
+        self.Privacy_mode = False
         #config initalization
         self.control_area = control_area
+        self.printer = printer
+        self.data_collector = data_collector
         #Config network data.
         self.is_server_host = False
         self.network_active = False
@@ -37,7 +39,7 @@ class Network():
         if self.server_ip == "":
             self.server_ip = socket.gethostbyname(socket.getfqdn())
             self.is_server_host = True
-        if Privacy_mode == False: #Privacy Mode is only togglable in this file. If its DISABLED, it should show the user their IP and PORT so that other machines can connect.
+        if self.Privacy_mode == False: #Privacy Mode is only togglable in this file. If its DISABLED, it should show the user their IP and PORT so that other machines can connect.
             print(f"Server IP set to {self.server_ip}. Port number {self.server_port}.")
         return self.is_server_host
 
@@ -85,7 +87,7 @@ class Network():
     def use_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
         self.socket.connect(self.server_ip, self.server_port) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
-        printer_name = position.encode("utf-8")               #On initial contact, format name to server "who" we are
+        printer_name = self.control_area.encode("utf-8")               #On initial contact, format name to server "who" we are
         printer_name_header = f"{len(printer_name):<{self.header_len}}".encode('utf-8')
         self.socket.send(printer_name)                        #Send server who we are
         self.network_active = True
@@ -107,8 +109,9 @@ class Network():
 
     def process_inbound(self, data):
         if self.debug_mode: print("Processing inbound...")
-        json_file = self.DataCollector.get_json()
-        flag = self.CallsignRequester.determineFlag(data.lower())
+        json_file = self.data_collector.get_json()
+        # flag = self.callsign_requester.determineFlag(data.lower())
+        flag = "Print"
         if flag == "GI_MSG":
             self.printer.print_gi_messages(data)
         elif flag == "Print":
@@ -116,8 +119,9 @@ class Network():
             #TODO: Process VISUAL SEPERATION flag. For now, we'll ignore that.
             if data[0].isalpha(): data = data[1:] #Remove visual separation flag lol
             for flight in json_file["pilots"]:
-                if flight["cid"] = data:
-                    self.CallsignRequester.request_callsign(flight["callsign"])
+                if flight["cid"] == data:
+                    # self.callsign_requester.request_callsign(flight["callsign"]).
+                    self.printer.print_callsign_data(self.data_collector.get_callsign_data(data), data, self.control_area)
                     break #This may need to be continue(?)
 
     def server_recieve_request(self, client_socket):
@@ -130,8 +134,9 @@ class Network():
         except:
             return False  
 
+
     def send_outbound(self, callsign):
-        if self.debug_mode: print(f"Sending {callsign} to server.")
+        print(f"Sending {callsign} to server.")
         self.socket.send(callsign)
 
     # def recieve_strips(self):
