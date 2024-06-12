@@ -9,15 +9,27 @@ from CallsignRequester import CallsignRequester
 class Network():
     def __init__(self, control_area) -> None:
         self.debug_mode = True #For dev work... lol
+        Privacy_mode = False
         #config initalization
         self.control_area = control_area
         #Config network data.
-        Privacy_mode = False
         self.is_server_host = False
         self.network_active = False
         self.server_port = 9511
-        print("Initializing electronic flight strip transfer system configurator...")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.header_len = 8
+        if self.debug_mode: print(f"Header length is set to {self.header_len}.")
+        self.network_devices = dict() #This is a list of all available "devices" on our server. Really, it should just list each position thats connected.
+        self.target_machines = set()  #This is a list of printers that we want our strips to go out to.
+
+
+        #TODO: Add logic to connect to server if it isn't "this" machine.
+        #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
+        #TODO: Process "send strip to departure" message.
+        #TODO EVENTUALLY: Store times on here lol.
+
+    def initialize_networking(self):
+        print("Initializing electronic flight strip transfer system configurator...")
         #Determine "where" server is.
         self.server_ip = ""
         self.server_ip = input("Please input the IP of the server. Leave blank if this machine is the server: ")
@@ -27,17 +39,7 @@ class Network():
             self.is_server_host = True
         if Privacy_mode == False: #Privacy Mode is only togglable in this file. If its DISABLED, it should show the user their IP and PORT so that other machines can connect.
             print(f"Server IP set to {self.server_ip}. Port number {self.server_port}.")
-        self.header_len = 8
-        if self.debug_mode: print(f"Header length is set to {self.header_len}.")
-        self.network_devices = dict() #This is a list of all available "devices" on our server. Really, it should just list each position thats connected.
-        self.target_machines = set()  #This is a list of printers that we want our strips to go out to.
         return self.is_server_host
-
-
-        #TODO: Add logic to connect to server if it isn't "this" machine.
-        #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
-        #TODO: Process "send strip to departure" message.
-        #TODO EVENTUALLY: Store times on here lol.
 
     def run_server(self): #https://pythonprogramming.net/server-chatroom-sockets-tutorial-python-3/
         #try:  #This logic is flawed (it throws an error and then continues to attempt the server lol)
