@@ -3,6 +3,7 @@ import time
 import json
 import math
 from DataCollector import DataCollector
+from Network import Network
 #If theres a SIGMET then default reason -> wx/tstorms>
 
 
@@ -20,7 +21,7 @@ from DataCollector import DataCollector
 ###IT JUST occured to me that this needs to NETWORK with other positions to get the in/out time lol oops
 
 class Scanner:
-    def __init__(self, control_area, sigmetJSON, printerpositions, airfields, data_collector: DataCollector) -> None:
+    def __init__(self, control_area, sigmetJSON, printerpositions, airfields, data_collector: DataCollector, do_network=False) -> None:
         self.averageTaxiTime = 10
         self.reportInterval = 15
         self.data_collector = data_collector
@@ -35,6 +36,8 @@ class Scanner:
         self.queue = {} #Format is callsign:time.time(). Example: queue = {"N69":time.time()}
         self.totalDelay = {} #Format is "callsign":{"totalDelay":0, "outTime":0}. "Example = totalDelay = {N70":{"totalDelay":0,"outTime":0}} 
         self.maxReportedDelay = 0
+        self.network = Network
+        self.do_network = do_network
 
     def scan(self, callsign):
         position = self.controlType.upper()
@@ -216,5 +219,6 @@ class Scanner:
         else:
             return "OTHER:OTHER"
 
-    def push_departure(self,callsign, visualFlag):
+    def push_departure(self, callsign, visualFlag):
+        if do_network: self.network.send_outbound(callsign)
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')

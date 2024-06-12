@@ -150,12 +150,15 @@ class Main():
         
         printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
         data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
-        efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector)
+        efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
-        server_manager = Network.initialize_server()
+        server_manager = Network(control_area)
+        
+        #Determine if we need to run the server or not.
+        is_server = server_manager.initialize_networking()
 
 
         # initial data grab
@@ -174,8 +177,10 @@ class Main():
         airspace = threading.Thread(target=airspacemanagement.getSplit)
 
         # Thread6: Start server
-        if server_manager:
+        if is_server:
             threading.Thread(target=server_manager.run_server)
+        # Thread7 : Join server
+        if do_we_network: threading.Thread(target=server_manager.use_server)
 
         
         print("Would you like Hazardous Weather Advisories?")

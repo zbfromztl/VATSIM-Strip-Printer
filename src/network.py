@@ -82,7 +82,7 @@ class Network():
                 self.sockets_list.remove(notified_socket)
                 del self.network_devices[notified_socket]
 
-    def use_server(self, position): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
+    def use_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
         self.socket.connect(self.server_ip, self.server_port) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
         printer_name = position.encode("utf-8")               #On initial contact, format name to server "who" we are
@@ -112,7 +112,13 @@ class Network():
         if flag == "GI_MSG":
             self.printer.print_gi_messages(data)
         elif flag == "Print":
-            self.CallsignRequester.request_callsign(data)
+            #If we recieve a print flight strip instruction, we'll need to convert the CID to the callsign...
+            #TODO: Process VISUAL SEPERATION flag. For now, we'll ignore that.
+            if data[0].isalpha(): data = data[1:] #Remove visual separation flag lol
+            for flight in json_file["pilots"]:
+                if flight["cid"] = data:
+                    self.CallsignRequester.request_callsign(flight["callsign"])
+                    break #This may need to be continue(?)
 
     def server_recieve_request(self, client_socket):
         try:
@@ -123,6 +129,10 @@ class Network():
             return {'header':message_head, 'data':client_socket.recv(message_len)}
         except:
             return False  
+
+    def send_outbound(self, callsign):
+        if self.debug_mode: print(f"Sending {callsign} to server.")
+        self.socket.send(callsign)
 
     # def recieve_strips(self):
     #     while self.network_active:                           #Let us break it off if we want to eventually lol
