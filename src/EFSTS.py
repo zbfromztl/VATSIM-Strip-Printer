@@ -223,5 +223,9 @@ class Scanner:
     def push_departure(self, callsign, visualFlag):
         # callsign = self.convert_identity(callsign)
         # if self.do_network: self.network.test_message(callsign, callsign)
-        if self.do_network: self.network.send_outbound(callsign)
+        try:
+            if self.do_network: 
+                self.network.send_outbound(callsign)
+        except:
+            print(Exception)
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')

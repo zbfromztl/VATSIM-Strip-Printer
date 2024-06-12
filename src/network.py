@@ -136,8 +136,11 @@ class Network():
 
 
     def send_outbound(self, callsign):
-        print(f"Sending {callsign} to server.")
-        self.socket.send(callsign)
+        try:
+            print(f"Sending {callsign} to server.")
+            self.socket.send(callsign)
+        except:
+            print(Exception)
 
     # def recieve_strips(self):
     #     while self.network_active:                           #Let us break it off if we want to eventually lol
