@@ -101,10 +101,12 @@ class Main():
                 printerpositiondefault = tuple((user_facility.items()))
                 print(f"I'm sorry, I can't seem to find {user_position}. Setting your position to {str(printerpositiondefault[0][0])}, the default position.")
                 control_area = user_facility[printerpositiondefault[0][0]]
+                user_position = str(printerpositiondefault[0][0])
         else:
             print(f"Setting your position to {control_area[0]}.")
             printerpositiondefault = tuple((user_facility.items()))
             control_area = user_facility[printerpositiondefault[0][0]]
+            user_position = str(user_facility[printerpositiondefault[0][0]])
        
         # ----- Networking Initialization:
         # do_network = False
@@ -156,7 +158,7 @@ class Main():
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
-        server_manager = Network("A80-DR", printer, data_collector)
+        server_manager = Network(user_position, printer, data_collector)
         
         #Determine if we need to run the server or not.
         print(f"Do we network? {do_we_network}")
@@ -179,10 +181,11 @@ class Main():
         airspace = threading.Thread(target=airspacemanagement.getSplit)
 
         # Thread6: Start server
-        if is_server:
-            threading.Thread(target=server_manager.run_server())
+        run_server = threading.Thread(target=server_manager.run_server)
+        if is_server: run_server.start()
         # Thread7 : Join server
-        if do_we_network: threading.Thread(target=server_manager.use_server())
+        go_online = threading.Thread(target=server_manager.use_server)
+        if do_we_network and not is_server: go_online.start()
         # print("Use server..")
         # server_manager.use_server()
         

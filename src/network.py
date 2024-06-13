@@ -55,17 +55,20 @@ class Network():
 
         while True:
             read_socket, _, exception_socket = select.select(self.sockets_list, [], self.sockets_list)
+            print(f"READ {read_socket} & EXCEPT {exception_socket}")
             if self.debug_mode: print(f"Someone is accessing the server.")
-            for notified_sockets in read_socket:
+            for notified_socket in read_socket:
                 if notified_socket == self.socket: #New connection!
                     client_socket, client_addy = self.socket.accept()
-                    if self.debug_mode: print(f"Client {client_socket} connected.")
+                    if self.debug_mode: print(f"Client {client_socket} connection accepted.")
                     #Station should report name on initial call
                     user = self.server_recieve_request(client_socket)
+                    if self.debug_mode: print(f"{user} added to register of devices.")
                     if user is False: continue #Client disconnected prior to successful connection
                     self.sockets_list.append(client_socket) #Append to select.select list
                     self.network_devices[client_socket] = user #Save client name
                     if self.debug_mode: print('Accepted new connection from {}:{}, station name: {}'.format(*client_addy, user['data'].decode('utf-8')))
+                    # print(self.sockets_list)
                 else:
                     message = self.server_recieve_request(notified_socket)
                     if message is False:
@@ -79,7 +82,8 @@ class Network():
                     #TODO: CONVERT TO ONLY SEND TO SELECTED PRINTERS!
                     for client_socket in self.network_devices:
                         if client_socket != notified_socket:
-                            client_socket.send(user['header']+user['data']+message['header']+message['data'])
+                            # client_socket.send(user['header']+user['data']+message['header']+message['data'])
+                            client_socket.send(message['header']+message['data'])
             for notified_socket in exception_socket:
                 self.sockets_list.remove(notified_socket)
                 del self.network_devices[notified_socket]
@@ -90,7 +94,8 @@ class Network():
         self.socket.setblocking(False)                        #Set connection to non-blocking state
         printer_name = self.control_area.encode("utf-8")               #On initial contact, format name to server "who" we are
         printer_name_header = f"{len(printer_name):<{self.header_len}}".encode('utf-8')
-        self.socket.send(printer_name)                        #Send server who we are
+        if self.debug_mode: print(f"Network printer {printer_name} attempting connection...")
+        self.socket.send(printer_name_header + printer_name)                        #Send server who we are
         if self.debug_mode: print(f"Connecting to server...")
         self.network_active = True
         # self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
@@ -130,19 +135,32 @@ class Network():
 
     def server_recieve_request(self, client_socket):
         try:
-            message_head = client_socket.recv(self.header_len)      #gotta add the header info to process how much data to process for GI shit... damn...
-            if not len(message_head):
+            # print(f"Recieved request from {client_socket.recv(self.header_len).decode('utf-8')}")
+            # print(client_socket.recv(self.header_len).decode('utf-8'))
+            message_head = client_socket.recv(self.header_len)#.decode('utf-8')      #gotta add the header info to process how much data to process for GI shit... damn...
+            if self.debug_mode: print(f"SERVER recieved MESSAGE HEADER LENGTH {len(message_head)}...")
+            if not len(message_head): 
+                print("no no no!")
                 return False
             message_len = int(message_head.decode('utf-8').strip())
+            print("he shoots")
             return {'header':message_head, 'data':client_socket.recv(message_len)}
         except:
+            print("fuq")
             return False  
 
 
     def send_outbound(self, callsign):
         try:
-            print(f"Sending {callsign} to server.")
-            self.socket.send(callsign)
+            if callsign:
+                print(f"NETWORK MODULE is attempting to send {callsign} to server.")
+                callsign = callsign.encode('utf-8')
+                if self.debug_mode: print("Callsign encoded.")
+                callsign_header = f"{len(callsign):<{self.header_len}}".encode('utf-8')
+                if self.debug_mode: print("Callsign Header encoded.")
+                self.socket.send(callsign_header + callsign)
+                print("sent successfullyyyyy")                        
+                # self.socket.send(callsign)
         except:
             print("Exception in NETWORK")
             print(Exception)
