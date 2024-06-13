@@ -183,9 +183,6 @@ class Main():
         # Thread6: Start server
         run_server = threading.Thread(target=server_manager.run_server)
         if is_server: run_server.start()
-        # Thread7 : Join server
-        go_online = threading.Thread(target=server_manager.use_server)
-        if do_we_network and not is_server: go_online.start()
         # print("Use server..")
         # server_manager.use_server()
         
@@ -211,6 +208,9 @@ class Main():
         if type_of_position == "GC" or type_of_position == "LC":
             scans.start()
         
+        # Thread7 : Join server
+        go_online = threading.Thread(target=server_manager.use_server)
+        if do_we_network and not is_server: go_online.start()
         
 
 if __name__ == "__main__":

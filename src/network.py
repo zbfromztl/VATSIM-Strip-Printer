@@ -71,6 +71,7 @@ class Network():
                     # print(self.sockets_list)
                 else:
                     message = self.server_recieve_request(notified_socket)
+                    # if message == "Connection Volatile?": continue
                     if message is False:
                         if self.debug_mode: print('Closed connection from: {}'.format(self.network_devices[notified_socket]['data'].decode('utf-8')))
                         self.sockets_list.remove(notified_socket)
@@ -88,8 +89,8 @@ class Network():
                 self.sockets_list.remove(notified_socket)
                 del self.network_devices[notified_socket]
 
-    def use_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
-        print("USINGGGG SERVERRRR")
+    def connect_to_server(self):
+        if self.debug_mode: print("Activating client -> server module.")
         self.socket.connect((self.server_ip, self.server_port)) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
         printer_name = self.control_area.encode("utf-8")               #On initial contact, format name to server "who" we are
@@ -98,6 +99,9 @@ class Network():
         self.socket.send(printer_name_header + printer_name)                        #Send server who we are
         if self.debug_mode: print(f"Connecting to server...")
         self.network_active = True
+
+    def use_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
+        self.connect_to_server()
         # self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
         try:
             while True:
@@ -141,6 +145,8 @@ class Network():
             if self.debug_mode: print(f"SERVER recieved MESSAGE HEADER LENGTH {len(message_head)}...")
             if not len(message_head): 
                 print("no no no!")
+                print("Guess they lost connection?")
+                # return "Connection Volatile?"
                 return False
             message_len = int(message_head.decode('utf-8').strip())
             print("he shoots")
@@ -159,10 +165,18 @@ class Network():
                 callsign_header = f"{len(callsign):<{self.header_len}}".encode('utf-8')
                 if self.debug_mode: print("Callsign Header encoded.")
                 self.socket.send(callsign_header + callsign)
-                print("sent successfullyyyyy")                        
-                # self.socket.send(callsign)
+                print("sent successfullyyyyy")
         except:
             print("Exception in NETWORK")
+            if callsign:
+                self.connect_to_server()
+                callsign = callsign.encode('utf-8')
+                if self.debug_mode: print("Callsign encoded.")
+                callsign_header = f"{len(callsign):<{self.header_len}}".encode('utf-8')
+                if self.debug_mode: print("Callsign Header encoded.")
+                self.socket.send(callsign_header + callsign)
+                print("sent successfullyyyyy")
+                self.socket.close()
             print(Exception)
 
     # def recieve_strips(self):
