@@ -18,11 +18,12 @@ from DataCollector import DataCollector
 #TODO EVENTUALLY: Store times on here lol.
 
 class Network():
-    def __init__(self, control_area, printer:Printer, data_collector:DataCollector) -> None:
+    def __init__(self, user_position, control_area:str, printer:Printer, data_collector:DataCollector) -> None:
         self.debug_mode = True #For dev work... lol
         self.Privacy_mode = False
         #config initalization
         self.control_area = control_area
+        self.user_position = user_position
         self.printer = printer
         self.data_collector = data_collector
         #Config network data.
@@ -103,7 +104,7 @@ class Network():
         if self.debug_mode: print("Activating client -> server module.")
         self.socket.connect((self.server_ip, self.server_port)) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
-        printer_name = self.control_area.encode("utf-8")               #On initial contact, format name to server "who" we are
+        printer_name = self.user_position.encode("utf-8")               #On initial contact, format name to server "who" we are
         printer_name_header = f"{len(printer_name):<{self.header_len}}".encode('utf-8')
         if self.debug_mode: print(f"Network printer {printer_name} attempting connection...")
         self.socket.send(printer_name_header + printer_name)                        #Send server who we are

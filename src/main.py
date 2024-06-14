@@ -153,7 +153,7 @@ class Main():
         
         printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
         data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
-        server_manager = Network(user_position, printer, data_collector)
+        server_manager = Network(user_position, control_area, printer, data_collector)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
