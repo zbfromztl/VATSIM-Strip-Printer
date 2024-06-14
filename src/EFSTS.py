@@ -21,7 +21,7 @@ from network import Network
 ###IT JUST occured to me that this needs to NETWORK with other positions to get the in/out time lol oops
 
 class Scanner:
-    def __init__(self, control_area, sigmetJSON, printerpositions, airfields, data_collector: DataCollector, do_network=False) -> None:
+    def __init__(self, control_area, sigmetJSON, printerpositions, airfields, data_collector: DataCollector, network: Network, do_network=False) -> None:
         self.averageTaxiTime = 10
         self.reportInterval = 15
         self.data_collector = data_collector
@@ -36,7 +36,7 @@ class Scanner:
         self.queue = {} #Format is callsign:time.time(). Example: queue = {"N69":time.time()}
         self.totalDelay = {} #Format is "callsign":{"totalDelay":0, "outTime":0}. "Example = totalDelay = {N70":{"totalDelay":0,"outTime":0}} 
         self.maxReportedDelay = 0
-        self.network = Network
+        self.network = network
         self.do_network = do_network
 
     def scan(self, callsign):
@@ -225,8 +225,7 @@ class Scanner:
         # if self.do_network: self.network.test_message(callsign, callsign)
         try:
             if self.do_network: 
-                self.network.send_outbound(callsign, callsign)
-        except:
-            print("Exception in EFSTS")
-            print(Exception)
+                self.network.send_outbound(callsign)
+        except Exception as e:
+            print(f"Exception in EFSTS: {e}")
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')

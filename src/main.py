@@ -153,12 +153,12 @@ class Main():
         
         printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
         data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
-        efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, do_we_network)
+        server_manager = Network(user_position, printer, data_collector)
+        efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
-        server_manager = Network(user_position, printer, data_collector)
         
         #Determine if we need to run the server or not.
         print(f"Do we network? {do_we_network}")
@@ -211,7 +211,7 @@ class Main():
         # Thread7 : Join server
         go_online = threading.Thread(target=server_manager.use_server)
         if do_we_network and not is_server: go_online.start()
-        
+        # if do_we_network: go_online.start() #If we *are* the server... it will error... lame.
 
 if __name__ == "__main__":
    main = Main()

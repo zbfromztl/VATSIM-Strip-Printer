@@ -55,7 +55,7 @@ class Network():
 
         while True:
             read_socket, _, exception_socket = select.select(self.sockets_list, [], self.sockets_list)
-            print(f"READ {read_socket} & EXCEPT {exception_socket}")
+            if self.debug_mode: print(f"READ {read_socket} & EXCEPT {exception_socket}")
             if self.debug_mode: print(f"Someone is accessing the server.")
             for notified_socket in read_socket:
                 if notified_socket == self.socket: #New connection!
@@ -82,10 +82,15 @@ class Network():
 
                     #TODO: CONVERT TO ONLY SEND TO SELECTED PRINTERS!
                     for client_socket in self.network_devices:
-                        if client_socket != notified_socket:
+                        if self.debug_mode: print(f"Attempting to submit data to {client_socket}.")
+                        if client_socket != notified_socket: #this will not attempt to inform the server lol
                             # client_socket.send(user['header']+user['data']+message['header']+message['data'])
                             client_socket.send(message['header']+message['data'])
+                        else: #Let's also let the server do stuff?
+                            if self.debug_mode: print(f"Server (Client) processing {message['data'].decode('utf-8')}")
+                            self.process_inbound(message['data'].decode('utf-8'))
             for notified_socket in exception_socket:
+                print(f"Remvoing exception: {notified_socket}")
                 self.sockets_list.remove(notified_socket)
                 del self.network_devices[notified_socket]
 
@@ -100,13 +105,17 @@ class Network():
         if self.debug_mode: print(f"Connecting to server...")
         self.network_active = True
 
+    def subscribe(self, device):
+        print("Ok so the idea here is that we don't have to print to everyone...")
+        #idk how to achieve that lol
+
     def use_server(self): #https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
         self.connect_to_server()
         # self.recieve_strips()                                 #Once in, allow us to recieve strips (prep for GI message integration.)
         try:
             while True:
                 printer_name_header = self.socket.recv(self.header_len)
-                if self.debug_mode: print(f"Server recieved {printer_name_header}.")
+                if self.debug_mode: print(f"Client recieved {printer_name_header}.")
                 if not len(printer_name_header): print("Connection closed by server...")
                 acid_header = self.socket.recv(self.header_len)
                 acid_len = int(acid_header.decode('utf-8').strip())
@@ -121,13 +130,14 @@ class Network():
             print('Network Client Error: {}'.format(str(e)))
 
     def process_inbound(self, data):
-        if self.debug_mode: print("Processing inbound...")
+        if self.debug_mode: print(f"Processing inbound: {data}")
         json_file = self.data_collector.get_json()
-        # flag = self.callsign_requester.determineFlag(data.lower())
         flag = "Print"
+        if data[:2] == "GI": flag = "GI_MSG"
         if flag == "GI_MSG":
             self.printer.print_gi_messages(data)
         elif flag == "Print":
+            if self.debug_mode: print(f"We are handling a PRINT job for {data}.")
             #If we recieve a print flight strip instruction, we'll need to convert the CID to the callsign...
             #TODO: Process VISUAL SEPERATION flag. For now, we'll ignore that.
             if data[0].isalpha(): data = data[1:] #Remove visual separation flag lol
@@ -151,10 +161,9 @@ class Network():
             message_len = int(message_head.decode('utf-8').strip())
             print("he shoots")
             return {'header':message_head, 'data':client_socket.recv(message_len)}
-        except:
-            print("fuq")
+        except Exception as e:
+            print(f"fuq... {e}")
             return False  
-
 
     def send_outbound(self, callsign):
         try:
@@ -162,12 +171,12 @@ class Network():
                 print(f"NETWORK MODULE is attempting to send {callsign} to server.")
                 callsign = callsign.encode('utf-8')
                 if self.debug_mode: print("Callsign encoded.")
-                callsign_header = f"{len(callsign):<{self.header_len}}".encode('utf-8')
+                callsign_header = f"{len(callsign):<{8}}".encode('utf-8')
                 if self.debug_mode: print("Callsign Header encoded.")
                 self.socket.send(callsign_header + callsign)
-                print("sent successfullyyyyy")
-        except:
-            print("Exception in NETWORK")
+                if self.debug_mode: print("sent successfullyyyyy")
+        except Exception as e:
+            print(f"Exception in NETWORK: {e}")
             if callsign:
                 self.connect_to_server()
                 callsign = callsign.encode('utf-8')
@@ -177,7 +186,6 @@ class Network():
                 self.socket.send(callsign_header + callsign)
                 print("sent successfullyyyyy")
                 self.socket.close()
-            print(Exception)
 
     # def recieve_strips(self):
     #     while self.network_active:                           #Let us break it off if we want to eventually lol
