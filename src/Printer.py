@@ -21,55 +21,7 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
-        #Recall data
-        self.processed_recalls = 0
-        self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
-        self.recall_inator(":)","initialize")
         pass
-
-    def recall_inator(self, data, request = '', strip_type="aircraft"): #Maintain a list of the last strips printed...
-        unlimited_recall = False #should it store every callsign ever printed or not?
-        recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
-        self.staging_list = dict({})
-        if request == "update":
-            if unlimited_recall:
-                self.processed_recalls = self.processed_recalls + 1
-                self.recall_list["recall_list"].update({f'recall{self.processed_recalls}':{'strip_type':strip_type, 'strip_content':data}})
-            else:
-                self.staging_list.update({"recall_list":{f'recall1':{'strip_type':strip_type,'strip_content':data}}})
-                self.processed_recalls = 1
-                for item in self.recall_list['recall_list']:
-                    item = self.recall_list['recall_list'][item]
-                    if self.processed_recalls < recall_limit:
-                        self.processed_recalls = self.processed_recalls + 1
-                        self.staging_list["recall_list"].update({f'recall{self.processed_recalls}':{'strip_type':item['strip_type'],'strip_content':item['strip_content']}})
-                    else:
-                        continue        
-                self.recall_list = self.staging_list.copy()
-        elif request == "initialize":
-            if unlimited_recall == False:
-                self.processed_recalls = 1
-                while self.processed_recalls < recall_limit:
-                    self.processed_recalls = self.processed_recalls + 1
-                    self.recall_list["recall_list"].update({f'recall{self.processed_recalls}':{"strip_type":None, "strip_content":None}})
-        elif data != "" and data.isdigit(): #Recall the item requested
-            request = f"recall{data}"
-            if request in self.recall_list['recall_list']:
-                request_location = self.recall_list['recall_list'].get(request)
-                if request_location.get("strip_type") is not None and request_location.get("strip_content") is not None:
-                    request_strip_type = request_location.get("strip_type")
-                    request_content = request_location.get("strip_content")
-                    if request_strip_type == "aircraft":
-                        print("This feature is unavailable in your country. Sorry. Just type the callsign that it dumped. It's not that hard.")
-                    elif request_strip_type == "gi":
-                        self.print_gi_messages(request_content)
-            else:
-                print(f"error recalling recall{data}")
-        else: #Show recall list
-            for cache in self.recall_list["recall_list"]:
-                cache_location = self.recall_list['recall_list'][cache]
-                if cache_location.get("strip_type") is not None:
-                    print(f"{cache}: STRIP TYPE: {cache_location['strip_type']} // CONTENT {cache_location['strip_content']}")
 
     def input_callsign():
         callsign = input("Enter Callsign: ")
@@ -87,7 +39,7 @@ class Printer:
         elif requested_callsign == "ALIGN":
             # Print flight strip to align correctly
             if self.printer: #Check to see if we want to print paper strips
-                self.zebra.output("^XA^FO0,0^GB203,4,4^FS^XZ")
+                self.zebra.output("^XA^FO0,190^GB203,4,4^FS^XZ")
             else:
                 print("aligning!!")
 
@@ -108,7 +60,6 @@ class Printer:
 
             strip_requested = f"{computer_id} {callsign} {ac_type} {assigned_sq} {cruise_tas} {cruise_alt} {departure_airport} {flightplan_route} {destination} {remarks}"
 
-            self.recall_inator(callsign, "update")
             if self.printer:
                 self.print_gi_messages(strip_requested)
             else:
@@ -144,7 +95,6 @@ class Printer:
                 line1 = f'{flightplan} {destination}'
                 destination = ""
 
-            self.recall_inator(callsign, "update") #send to recall-inator
             #print flight strip on printer
             if self.printer:  #Check to see if we want to print paper strips
                 time.sleep(1)
@@ -186,7 +136,6 @@ class Printer:
             except:
                 pass
 
-            self.recall_inator(callsign, "update")
             pos_9a = f"{destination} {remarks}"
             if self.printer:  #Check to see if we want to print paper strips
                 self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = pos_9a, pos9C=remarks)
@@ -232,7 +181,6 @@ class Printer:
 
     def print_gi_messages(self, message):
         message = message.upper()
-        self.recall_inator(message, "update", "gi")
         if self.printer: #Check to see if we want to print paper strips
             self.zebra.output(f""" ^XA ^CWS,{self.print_directory}{self.font} ^XZ
                               
@@ -253,13 +201,11 @@ class Printer:
             print(f"{message}")
         
     def print_memoryAids(self):
-        # if self.printer:
-            # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
-            #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDW/N HRSHL/RONII^FS^XZ""")
-            
-            # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
-            #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDSTOP^FS^XZ""")
-        # else:
+        # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
+        #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDW/N HRSHL/RONII^FS^XZ""")
+        
+        # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
+        #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDSTOP^FS^XZ""")
         print("STOP")
         print("\\\\\\ NO LUAW ///")
         print("S/E SLAWW/FUTBL")

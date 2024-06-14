@@ -3,7 +3,6 @@ import time
 import json
 import math
 from DataCollector import DataCollector
-from network import Network
 #If theres a SIGMET then default reason -> wx/tstorms>
 
 
@@ -21,7 +20,7 @@ from network import Network
 ###IT JUST occured to me that this needs to NETWORK with other positions to get the in/out time lol oops
 
 class Scanner:
-    def __init__(self, control_area, sigmetJSON, printerpositions, airfields, data_collector: DataCollector, network: Network, do_network=False) -> None:
+    def __init__(self, control_area, sigmetJSON, printerpositions, airfields, data_collector: DataCollector) -> None:
         self.averageTaxiTime = 10
         self.reportInterval = 15
         self.data_collector = data_collector
@@ -36,8 +35,6 @@ class Scanner:
         self.queue = {} #Format is callsign:time.time(). Example: queue = {"N69":time.time()}
         self.totalDelay = {} #Format is "callsign":{"totalDelay":0, "outTime":0}. "Example = totalDelay = {N70":{"totalDelay":0,"outTime":0}} 
         self.maxReportedDelay = 0
-        self.network = network
-        self.do_network = do_network
 
     def scan(self, callsign):
         position = self.controlType.upper()
@@ -72,7 +69,7 @@ class Scanner:
             totalDelay = (currentTime - startTime) / 60
             totalDelay = math.floor(totalDelay)
             self.totalDelay[callsign] = totalDelay
-            print(f"Taxi Time for {callsign}: {self.totalDelay[callsign]}")
+            print(self.totalDelay[callsign])
             self.queue.pop(callsign)
         self.push_departure(callsign, visualFlag)
 
@@ -105,7 +102,6 @@ class Scanner:
             if aircraft['cid'] is callsign:
                 print(aircraft['callsign'])
                 found = True
-                return aircraft['callsign']
         if found != True:
             print(f"Sorry, I couldn't find {callsign}. Please verify they have not dropped out.")
 
@@ -220,19 +216,5 @@ class Scanner:
         else:
             return "OTHER:OTHER"
 
-    def push_departure(self, callsign, visualFlag):
-        # callsign = self.convert_identity(callsign)
-        # if self.do_network: self.network.test_message(callsign, callsign)
-        try:
-            if self.do_network: 
-                self.network.send_outbound(callsign)
-        except Exception as e:
-            print(f"Exception in EFSTS: {e}")
+    def push_departure(self,callsign, visualFlag):
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')
-
-    def push_gi_message(self, gi_message): #lol this is here so that theres a way of getting from callsign requester -> network
-        try:
-            if self.do_network:
-                self.network.send_outbound(gi_message)
-        except Exception as e:
-            print(f"Exception in EFSTS: {e}")

@@ -9,7 +9,6 @@ import json
 from HazardousWX import WXRadio
 from EFSTS import Scanner
 from armt import AirspaceManagement
-from network import Network
 
 __author__ = "Simon Heck"
 
@@ -21,7 +20,6 @@ class Main():
         waypoint_database = "./data/waypoint_database.json"
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT"
-        allowNetwork = True
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -101,29 +99,11 @@ class Main():
                 printerpositiondefault = tuple((user_facility.items()))
                 print(f"I'm sorry, I can't seem to find {user_position}. Setting your position to {str(printerpositiondefault[0][0])}, the default position.")
                 control_area = user_facility[printerpositiondefault[0][0]]
-                user_position = str(printerpositiondefault[0][0])
         else:
             print(f"Setting your position to {control_area[0]}.")
             printerpositiondefault = tuple((user_facility.items()))
             control_area = user_facility[printerpositiondefault[0][0]]
-            user_position = str(user_facility[printerpositiondefault[0][0]])
-       
-        # ----- Networking Initialization:
-        # do_network = False
-        is_server = False
-        while(allowNetwork):
-            try:
-                is_on_network = False
-                do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
-                do_we_network = bool(int(do_we_network))
-                break
-                # if do_we_network: 
-                #     do_network = True
-                # break
-            except ValueError:
-                print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
-    
         # -----Print all Departures-----
         while(True):
             try:
@@ -153,16 +133,11 @@ class Main():
         
         printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
         data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
-        server_manager = Network(user_position, control_area, printer, data_collector)
-        efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
+        efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
-        
-        #Determine if we need to run the server or not.
-        print(f"Do we network? {do_we_network}")
-        if do_we_network: is_server = server_manager.initialize_networking()
 
 
         # initial data grab
@@ -179,14 +154,6 @@ class Main():
         # Thread5: Keep track of departure delays. Manage strip scanners.
         scans = threading.Thread(target=efsts.opsNet)
         airspace = threading.Thread(target=airspacemanagement.getSplit)
-
-        # Thread6: Start server
-        run_server = threading.Thread(target=server_manager.run_server)
-        if is_server: run_server.start()
-        # print("Use server..")
-        # server_manager.use_server()
-        
-
 
         print("Would you like Hazardous Weather Advisories?")
         enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
@@ -208,10 +175,7 @@ class Main():
         if type_of_position == "GC" or type_of_position == "LC":
             scans.start()
         
-        # Thread7 : Join server
-        go_online = threading.Thread(target=server_manager.use_server)
-        if do_we_network and not is_server: go_online.start()
-        # if do_we_network: go_online.start() #If we *are* the server... it will error... lame.
+        
 
 if __name__ == "__main__":
    main = Main()
