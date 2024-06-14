@@ -52,10 +52,14 @@ so you may want to save those before running it. Additionally, you need to defin
 the font of the flight strips to be used in main.py. You can send open communication
 with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all available fonts. </sub>
 
-# Strip Alignment [doesn't work lol]:
+# Strip Alignment:
  * Strips require manual alignment prior to first print.
  1. Launch program. Type "Align" after selecting positions.
- 2. Move "line" on alignment strip to mouth of printer. 
+   - This will print a flight strip that should have a line at both ends.
+ 2. Utilize the line at the mouth of the printer to determine how much "drift" the printer started with.
+ 3. Move the flight strip into the printer in a manner that is antithical* to the drift approximated in step 2.
+ 4. Print another flight strip. The strips should be in place now. 
+<sub>* this wording is weird lol sorry</sub>
 
 # Commands:
  * Memoryaids - Prints several memory aids, including STOP and NO LUAW.
