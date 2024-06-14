@@ -229,3 +229,10 @@ class Scanner:
         except Exception as e:
             print(f"Exception in EFSTS: {e}")
         print(f'PUSHING {callsign} TO DEPARTURE RADAR. VISUAL SEPARATION: {visualFlag}.')
+
+    def push_gi_message(self, gi_message): #lol this is here so that theres a way of getting from callsign requester -> network
+        try:
+            if self.do_network:
+                self.network.send_outbound(gi_message)
+        except Exception as e:
+            print(f"Exception in EFSTS: {e}")

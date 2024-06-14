@@ -37,6 +37,7 @@ class CallsignRequester:
                 self.scan.convert_identity(callsign_to_print)
             elif flag == "GI_MSG":
                 self.printer.print_gi_messages(callsign_to_print)
+                self.scan.push_gi_message(callsign_to_print)
             elif flag == "DROP":
                 callsign_to_print = callsign_to_print[4:].strip()
                 self.scan.dropTime(callsign_to_print)

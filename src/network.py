@@ -138,18 +138,24 @@ class Network():
         if self.debug_mode: print(f"Processing inbound: {data}")
         json_file = self.data_collector.get_json()
         flag = "Print"
-        if data[:2] == "GI": flag = "GI_MSG"
+        if data.upper()[:2] == "GI": flag = "GI_MSG"
         if flag == "GI_MSG":
             self.printer.print_gi_messages(data)
         elif flag == "Print":
             if self.debug_mode: print(f"We are handling a PRINT job for {data}.")
             #If we recieve a print flight strip instruction, we'll need to convert the CID to the callsign...
             #TODO: Process VISUAL SEPERATION flag. For now, we'll ignore that.
+            data = str(data)
             if data[0].isalpha(): data = data[1:] #Remove visual separation flag lol
             for flight in json_file["pilots"]:
-                if flight["cid"] == data:
+                # print(flight)
+                # print(flight["cid"])
+                # print(f"Does {data} equal to {flight['cid']}? The callsign would be {flight['callsign']}. Survey says {flight['cid'] == data}!")
+                if str(flight["cid"]) == data:
                     # self.callsign_requester.request_callsign(flight["callsign"]).
-                    self.printer.print_callsign_data(self.data_collector.get_callsign_data(data), data, self.control_area)
+                    callsign_to_print = flight["callsign"]
+                    if self.debug_mode: print(f"Callsign located... {self.data_collector.get_callsign_data(callsign_to_print)}, {callsign_to_print}, {self.control_area}")
+                    self.printer.print_callsign_data(self.data_collector.get_callsign_data(callsign_to_print), callsign_to_print, self.control_area)
                     break #This may need to be continue(?)
 
     def server_recieve_request(self, client_socket):
