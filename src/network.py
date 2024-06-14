@@ -166,15 +166,15 @@ class Network():
             message_head = client_socket.recv(self.header_len)#.decode('utf-8')      #gotta add the header info to process how much data to process for GI shit... damn...
             if self.debug_mode: print(f"SERVER recieved MESSAGE HEADER LENGTH {len(message_head)}...")
             if not len(message_head): 
-                print("no no no!")
-                print("Guess they lost connection?")
+                if self.debug_mode: print("no no no!")
+                if self.debug_mode: print("Guess they lost connection?")
                 # return "Connection Volatile?"
                 return False
             message_len = int(message_head.decode('utf-8').strip())
-            print("he shoots")
+            if self.debug_mode: print("he shoots")
             return {'header':message_head, 'data':client_socket.recv(message_len)}
         except Exception as e:
-            print(f"fuq... {e}")
+            print(f"EXCEPTION in Network / Server_Recieve_Request failed: {e}")
             return False  
 
     def send_outbound(self, callsign):

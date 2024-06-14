@@ -83,3 +83,9 @@ with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all availab
       - hasBarcode (Departure Strips Only): true/false
       - stripType: Both/Departure/Arrival
  * Example setups are already included in program.
+
+ # Networking [WIP]:
+ * This program has limited support and is in early Alpha for the Electronic Flight Strip Transfer System in a Local Area Network (LAN).
+ * As of 6/14/2024, only the server may recieve data transmitted. I recommend launching the "Departure Radar" position as the server.
+    - Additionally, I recommend using ATL-GCN as the ground position if you intend on keeping track of taxi times. 
+    - ATL-LC2 will bypass the "in" scan time and only send the flight strip to departure. This is not recommended if you have a GCN position open as it will NOT delete the flight plan from the delay database. 
