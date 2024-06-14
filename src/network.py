@@ -6,6 +6,17 @@ from DataCollector import DataCollector
 # from CallsignRequester import CallsignRequester
 
 #Well, that's all folks!
+#TODO: Use .strip (or is it .split?) to look for printers to print to. 
+#TODO: Add logic to subscribe/remove printers to print to
+#TODO: Transmit GI messages
+#TODO: When a printer is added, print a strip at the recieving end indicating operational status.
+
+#old todo that isn't up to date
+#TODO: Add logic to connect to server if it isn't "this" machine.
+#TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
+#TODO: Process "send strip to departure" message.
+#TODO EVENTUALLY: Store times on here lol.
+
 class Network():
     def __init__(self, control_area, printer:Printer, data_collector:DataCollector) -> None:
         self.debug_mode = True #For dev work... lol
@@ -23,12 +34,6 @@ class Network():
         if self.debug_mode: print(f"Header length is set to {self.header_len}.")
         self.network_devices = dict() #This is a list of all available "devices" on our server. Really, it should just list each position thats connected.
         self.target_machines = set()  #This is a list of printers that we want our strips to go out to.
-
-
-        #TODO: Add logic to connect to server if it isn't "this" machine.
-        #TODO: Add logic to process printer connecting/unresponsive(disconnect) to server.
-        #TODO: Process "send strip to departure" message.
-        #TODO EVENTUALLY: Store times on here lol.
 
     def initialize_networking(self):
         print("Initializing electronic flight strip transfer system configurator...")
