@@ -138,7 +138,7 @@ class DataCollector:
             except TypeError as e1:
                 pass        
             except Exception as e2:
-                print(e2)
+                print(f"EXCEPTION in DATA COLLECTOR: {e2}")
             
         for user in disconnected:
             try:

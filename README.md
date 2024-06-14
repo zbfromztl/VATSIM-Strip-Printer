@@ -52,10 +52,14 @@ so you may want to save those before running it. Additionally, you need to defin
 the font of the flight strips to be used in main.py. You can send open communication
 with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all available fonts. </sub>
 
-# Strip Alignment [doesn't work lol]:
+# Strip Alignment:
  * Strips require manual alignment prior to first print.
  1. Launch program. Type "Align" after selecting positions.
- 2. Move "line" on alignment strip to mouth of printer. 
+   - This will print a flight strip that should have a line at both ends.
+ 2. Utilize the line at the mouth of the printer to determine how much "drift" the printer started with.
+ 3. Move the flight strip into the printer in a manner that is antithical* to the drift approximated in step 2.
+ 4. Print another flight strip. The strips should be in place now. 
+<sub>* this wording is weird lol sorry</sub>
 
 # Commands:
  * Memoryaids - Prints several memory aids, including STOP and NO LUAW.
@@ -83,3 +87,9 @@ with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all availab
       - hasBarcode (Departure Strips Only): true/false
       - stripType: Both/Departure/Arrival
  * Example setups are already included in program.
+
+ # Networking [WIP]:
+ * This program has limited support and is in early Alpha for the Electronic Flight Strip Transfer System in a Local Area Network (LAN).
+ * As of 6/14/2024, only the server may recieve data transmitted. I recommend launching the "Departure Radar" position as the server.
+    - Additionally, I recommend using ATL-GCN as the ground position if you intend on keeping track of taxi times. 
+    - ATL-LC2 will bypass the "in" scan time and only send the flight strip to departure. This is not recommended if you have a GCN position open as it will NOT delete the flight plan from the delay database. 

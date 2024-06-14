@@ -37,9 +37,13 @@ class CallsignRequester:
                 self.scan.convert_identity(callsign_to_print)
             elif flag == "GI_MSG":
                 self.printer.print_gi_messages(callsign_to_print)
+                self.scan.push_gi_message(callsign_to_print)
             elif flag == "DROP":
                 callsign_to_print = callsign_to_print[4:].strip()
                 self.scan.dropTime(callsign_to_print)
+            elif flag == "RECALL":
+                callsign_to_print = callsign_to_print[6:].strip()
+                self.printer.recall_inator(callsign_to_print)
             elif flag == "FRC":                                         #prints full strips. This definitely needs to be cleaned up in the future...
                 callsign_to_print = callsign_to_print.upper()
                 if callsign_to_print[0:3] == "SR ":
@@ -64,11 +68,13 @@ class CallsignRequester:
         if callsign_to_print == "times":
             return "TIME"
         if callsign_to_print[0:3] == "gi ":
-          return "GI_MSG"
+            return "GI_MSG"
         if callsign_to_print[0:3] == "sr ":
-          return "FRC"
+            return "FRC"
         if callsign_to_print[0:4] == "frc ":
-          return "FRC"
+            return "FRC"
+        if callsign_to_print[0:6] == "recall":
+            return "RECALL"
 
         #What are we doing with this? Depends on what position the guy is working, maybe?
         #If they're NOT working Ground or Local, they shouldn't be scanning strips.
