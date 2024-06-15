@@ -109,17 +109,13 @@ class Main():
             user_position = str(user_facility[printerpositiondefault[0][0]])
        
         # ----- Networking Initialization:
-        # do_network = False
         is_server = False
         while(allowNetwork):
             try:
-                is_on_network = False
+                do_we_network = False
                 do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
                 do_we_network = bool(int(do_we_network))
                 break
-                # if do_we_network: 
-                #     do_network = True
-                # break
             except ValueError:
                 print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
@@ -128,7 +124,7 @@ class Main():
         while(True):
             try:
                 do_we_print = False
-                if control_area['auto_Print_Strips']: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
+                if control_area['auto_Print_Strips'] or do_we_network: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
                     do_we_print = bool(int(input("Do you want to print paper flight progress strips? Reply with a '1' for yes, or '0' for no: ")))
                     response = input("Do you want to print eligble aircraft already present in the area of jurisdiction? Reply with a '1' for yes, '0' for no: ")
                     print_all_departures = bool(int(response))
@@ -161,7 +157,7 @@ class Main():
         airspacemanagement = AirspaceManagement(control_area, data_collector)
         
         #Determine if we need to run the server or not.
-        print(f"Do we network? {do_we_network}")
+        # print(f"Do we network? {do_we_network}")
         if do_we_network: is_server = server_manager.initialize_networking()
 
 
@@ -210,8 +206,7 @@ class Main():
         
         # Thread7 : Join server
         go_online = threading.Thread(target=server_manager.use_server)
-        if do_we_network and not is_server: go_online.start()
-        # if do_we_network: go_online.start() #If we *are* the server... it will error... lame.
+        if do_we_network and not is_server: go_online.start() # If we *are* the server... it will error... lame.
 
 if __name__ == "__main__":
    main = Main()
