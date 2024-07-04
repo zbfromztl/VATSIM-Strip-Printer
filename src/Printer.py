@@ -21,6 +21,7 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
+        self.remark_prefix = "* "
         #Recall data
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
@@ -307,9 +308,9 @@ class Printer:
         try:
             if ret_string is not None:
                 if(len(ret_string)) < length:
-                    return f"  {ret_string}" 
+                    return f"{self.remark_prefix}{ret_string}" 
                 else:
-                    return f"  {ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+                    return f"{self.remark_prefix}{ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
         except:
             return ""
         
