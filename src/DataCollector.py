@@ -142,9 +142,16 @@ class DataCollector:
             
         for user in disconnected:
             try:
+                callsign_info = self.callsign_list[user]['flight_plan']
+                callsign_flight_plan = callsign_info["route"], 
+                callsign_departure = callsign_info["departure"]
+                callsign_flightrules = callsign_info["flight_rules"]
+                removed_route = self.get_removed_route(callsign_flight_plan, callsign_departure, callsign_flightrules)
+                removed_route = removed_route.replace(f"{callsign_departure} ","")
                 self.remove_callsign_from_lists(user)
-                print(f"FLIGHT PLAN FOR {user} HAS TIMED OUT.")
-            except:
+                print(f"FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
+            except Exception as e2:
+                print(f"Exception removing flight plan: {e2}")
                 continue
         
 
@@ -169,3 +176,17 @@ class DataCollector:
     def update_json(self, json_url):
         r = requests.get(json_url)
         self.json_file = r.json()
+
+    def get_removed_route(self, flightplan:str, departure:str, flightrules:str):
+        flightplan = str(flightplan)
+        flightplan = flightplan.replace("(","")
+        flightplan = flightplan.replace(")","")
+        flightplan = flightplan.replace("'","")
+        flightplan = flightplan.replace("."," ")
+        flightplan = flightplan.replace("  "," ")
+        try: 
+            if flightplan.isalnum: removed_route = self.printer.format_flightplan(flightplan, departure, flightrules)
+            else: removed_route = "ERROR PARSING ROUTE"
+        except:
+            print(f"Error determining route for dropped flight plan: {flightplan} from {departure}")
+        return removed_route
