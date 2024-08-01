@@ -21,6 +21,7 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
+        self.remark_prefix = "* "
         #Recall data
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
@@ -87,7 +88,7 @@ class Printer:
         elif requested_callsign == "ALIGN":
             # Print flight strip to align correctly
             if self.printer: #Check to see if we want to print paper strips
-                self.zebra.output("^XA^FO0,190^GB203,4,4^FS^XZ")
+                self.zebra.output("^XA^FO0,0^GB203,4,4^FS^XZ")
             else:
                 print("aligning!!")
 
@@ -253,11 +254,13 @@ class Printer:
             print(f"{message}")
         
     def print_memoryAids(self):
-        # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
-        #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDW/N HRSHL/RONII^FS^XZ""")
-        
-        # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
-        #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDSTOP^FS^XZ""")
+        # if self.printer:
+            # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
+            #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDW/N HRSHL/RONII^FS^XZ""")
+            
+            # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
+            #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDSTOP^FS^XZ""")
+        # else:
         print("STOP")
         print("\\\\\\ NO LUAW ///")
         print("S/E SLAWW/FUTBL")
@@ -305,9 +308,9 @@ class Printer:
         try:
             if ret_string is not None:
                 if(len(ret_string)) < length:
-                    return f"  {ret_string}" 
+                    return f"{self.remark_prefix}{ret_string}" 
                 else:
-                    return f"  {ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+                    return f"{self.remark_prefix}{ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
         except:
             return ""
         
