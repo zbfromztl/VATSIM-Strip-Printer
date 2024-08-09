@@ -21,7 +21,7 @@ class Main():
         waypoint_database = "./data/waypoint_database.json"
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
-        allowNetwork = True
+        allowNetwork = False
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -110,6 +110,7 @@ class Main():
        
         # ----- Networking Initialization:
         is_server = False
+        do_we_network = False
         while(allowNetwork):
             try:
                 do_we_network = False
@@ -141,7 +142,7 @@ class Main():
                         clear_callsigns = ClearStoredCallsigns(cached_callsign_path)
                 break
             except ValueError:
-                print("Please input either a 1 or 0....IDIOT")
+                print("Please input either a 1 or 0")
 
         # load callsigns so that they are not printed
         # if not print_cached_departures:
