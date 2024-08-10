@@ -21,7 +21,7 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
-        self.remark_prefix = "* "
+        self.remark_prefix = "O"
         #Recall data
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
@@ -310,7 +310,8 @@ class Printer:
                 if(len(ret_string)) < length:
                     return f"{self.remark_prefix}{ret_string}" 
                 else:
-                    return f"{self.remark_prefix}{ret_string[0:length-3]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+                    return f"{self.remark_prefix}{ret_string[0:length-4]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
+                    #TODO: Fix logic for "shortening" detection (so that the text doesn't write on itself...)
         except:
             return ""
         
@@ -329,6 +330,7 @@ class Printer:
 
         modified_flightplan = modified_flightplan.replace(".", " ")
         modified_flightplan = modified_flightplan.replace("/", " ") #This should fix the removal of fixes that have stepclimbs associated with them?
+        modified_flightplan = modified_flightplan.replace("  ", " ") #Someone filed a flight plan with double spaces :|
         modified_flightplan = modified_flightplan.strip()
         # split flightplan into a list of the routes waypoints
         flightplan_list = modified_flightplan.split(' ')
