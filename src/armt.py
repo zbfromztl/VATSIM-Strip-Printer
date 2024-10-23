@@ -242,7 +242,9 @@ class AirspaceManagement:
             splitPosition = splitPosition.replace(" ","")
             if splitPosition[1].isnumeric():
                 splitPosition = splitPosition.replace(splitPosition[:2],self.depCodes[splitPosition.upper()[:2]]).lower()
-        except:
-            print("damn")
+        except Exception as e2:
+            if str(e2) != "string index out of range": print(f"Error: {e2}.")
+            else: pass
+            
         return splitPosition
             
