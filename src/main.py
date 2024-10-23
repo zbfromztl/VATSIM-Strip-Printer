@@ -22,6 +22,7 @@ class Main():
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
         allowNetwork = False
+        allowPrefiles = True
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -120,7 +121,6 @@ class Main():
             except ValueError:
                 print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
-    
         # -----Print all Departures-----
         while(True):
             try:
@@ -129,9 +129,9 @@ class Main():
                     do_we_print = bool(int(input("Do you want to print paper flight progress strips? Reply with a '1' for yes, or '0' for no: ")))
                     response = input("Do you want to print eligble aircraft already present in the area of jurisdiction? Reply with a '1' for yes, '0' for no: ")
                     print_all_departures = bool(int(response))
-                    if(print_all_departures):
-                        response = input(f"This will possibly print up to {len(current_callsigns_cached)} strips. Reply '1' for yes, '0' for no: ")
-                        print_all_departures = bool(int(response))
+                    # if(print_all_departures):
+                    #     response = input(f"This will possibly print up to {len(current_callsigns_cached)} strips. Reply '1' for yes, '0' for no: ")
+                    #     print_all_departures = bool(int(response))
                     
                 if(print_all_departures):
                     response = input(f"Do you want to clear the {len(current_callsigns_cached)} cached strips? Reply '1' for yes, '0' for no: ")
@@ -144,12 +144,22 @@ class Main():
             except ValueError:
                 print("Please input either a 1 or 0")
 
+        # --- AllowPrefiles ---
+        handle_prefiles = False
+        if allowPrefiles:
+            if control_area['stripType'] == "departure" or control_area['stripType'] == "both": #Only ask if this position is eligble
+                try:
+                    response = input("Do you want to print pre-filed flight plans? Reply with a '1' for yes, '0' for no: ")
+                    handle_prefiles = bool(int(response))
+                except ValueError:
+                    print("Please input either 1 or 0")
+
         # load callsigns so that they are not printed
         # if not print_cached_departures:
         printed_callsigns = current_callsigns_cached
         
         printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
-        data_collector = DataCollector(json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
+        data_collector = DataCollector(handle_prefiles, json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
         server_manager = Network(user_position, control_area, printer, data_collector)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
