@@ -195,8 +195,11 @@ class Main():
         
 
 
-        print("Would you like Hazardous Weather Advisories?")
-        enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
+        try:
+            print("Would you like Hazardous Weather Advisories?")
+            enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
+        except ValueError:
+            print('Reply "1" for yes, and "0" for no: ')
 
         #start printing strips while customer decides whether or not they want to sync the data.
         automated_strip_printing.start()

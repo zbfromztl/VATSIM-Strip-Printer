@@ -93,6 +93,7 @@ class AirspaceManagement:
         self.datacollector = data_collector
         self.proposals = proposals
         self.depCodes = depCodes
+        self.qualifier_airfield = "KATL"
     
     def getSplit(self) -> str:
         time.sleep(.5)
@@ -193,6 +194,7 @@ class AirspaceManagement:
         
         json_File = self.datacollector.get_json()
         json_File = json_File['pilots']
+        #Tabulate ONLINE traffic.
         for i in range(len(json_File)):
             # pilot at index i information
             current_pilot = json_File[i]
@@ -200,10 +202,22 @@ class AirspaceManagement:
             try:
                 lat_long_tuple = (current_pilot['latitude'], current_pilot['longitude'])
                 pilot_departure_airport = current_pilot['flight_plan']['departure']
-                if pilot_departure_airport == "KATL" and self.datacollector.in_geographical_region_wip(self.controlArea, pilot_departure_airport, lat_long_tuple):
+                if pilot_departure_airport == self.qualifier_airfield and self.datacollector.in_geographical_region_wip(self.controlArea, pilot_departure_airport, lat_long_tuple):
                     aircraft[current_pilot['callsign']] = current_pilot['flight_plan']['route']
             except:
                 continue
+        
+        #Tabulate PREFILED traffic.
+        if self.datacollector.handle_prefiles: 
+            json_File = self.datacollector.get_json()
+            json_File = json_File['prefiles']
+            for i in range(len(json_File)):
+                current_pilot = json_File[i]
+                pilot_departure_airport = current_pilot['flight_plan']['departure']
+                try:
+                    if pilot_departure_airport == self.qualifier_airfield: aircraft[current_pilot['callsign']] = current_pilot['flight_plan']['route']
+                except:
+                    continue
 
         for i in aircraft:
             for types in self.proposals:
