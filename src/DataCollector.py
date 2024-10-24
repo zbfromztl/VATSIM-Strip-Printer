@@ -152,7 +152,7 @@ class DataCollector:
                     if str(lookfor) == 'both': lookfor = 'departure'
                     if lookfor == 'departure': #Do NOT process prefiled arrival strips...
                         #The network moves flight plans back to the prefile list if they disconnect. Don't know what the logic is but let's filter out people who's departure time has PASSED.
-                        lookoutwindow = 15 #Let's ignore plans that are more than 15 hours in the "future" (less than 8 hours ago)
+                        lookoutwindow = 16 #Let's ignore plans that are more than 16 hours in the "future" (less than 8 hours ago)
                         lookoutwindow = lookoutwindow * 3600 #Convert lookout window to seconds
                         planned_dep_time = proposed_plan['flight_plan']['deptime']
                         time_now = time.gmtime().tm_hour*3600 + time.gmtime().tm_min*60
