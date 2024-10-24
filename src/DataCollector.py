@@ -65,8 +65,6 @@ class DataCollector:
 
                     self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
-            # if self.handle_prefiles: #Do we want to process prefiled flight plans?
-                # for proposal in 
             # auto_update cached callsigns
             file = open(self.cached_departures_file_path, 'wb')
             pickle.dump(self.printed_callsigns, file)
@@ -153,7 +151,18 @@ class DataCollector:
                 else:
                     if str(lookfor) == 'both': lookfor = 'departure'
                     if lookfor == 'departure': #Do NOT process prefiled arrival strips...
-                        if proposed_plan['flight_plan']['departure'] in tuple(self.control_area['airports']): self.add_callsign_to_dep_list(pilot_callsign, proposed_plan, lookfor)
+                        #The network moves flight plans back to the prefile list if they disconnect. Don't know what the logic is but let's filter out people who's departure time has PASSED.
+                        lookoutwindow = 15 #Let's ignore plans that are more than 15 hours in the "future" (less than 8 hours ago)
+                        lookoutwindow = lookoutwindow * 3600 #Convert lookout window to seconds
+                        planned_dep_time = proposed_plan['flight_plan']['deptime']
+                        time_now = time.gmtime().tm_hour*3600 + time.gmtime().tm_min*60
+                        lookoutwindow = time_now + lookoutwindow
+                        planned_dep_time = int(planned_dep_time[:2])*3600 + int(planned_dep_time[2:])*60
+                        if planned_dep_time >= 86400: 
+                            time_now = time_now - 86400
+                            planned_dep_time = planned_dep_time - 86400
+                        if (time_now <= planned_dep_time <= lookoutwindow):
+                            if proposed_plan['flight_plan']['departure'] in tuple(self.control_area['airports']): self.add_callsign_to_dep_list(pilot_callsign, proposed_plan, lookfor)
                 
             
         for user in disconnected:
