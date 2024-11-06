@@ -3,10 +3,10 @@ from Printer import Printer
 import time
 import json
 import pickle
-__author__ = "Simon Heck"
+__author__ = "Simon Heck", "KK"
 
 class DataCollector:
-    def __init__(self, json_url:str, control_area:str, printer:Printer, cached_printed_departures:list, cached_departures_file_path:str, positions: dict, airports:dict) -> None:
+    def __init__(self, handle_prefiles, json_url:str, control_area:str, printer:Printer, cached_printed_departures:list, cached_departures_file_path:str, positions: dict, airports:dict) -> None:
         self.callsign_list = {}
         self.json_url = json_url
         self.control_area = control_area
@@ -17,6 +17,7 @@ class DataCollector:
         self.control_area_dict = positions['facilities']
         self.fence = positions['fence_data']
         self.airports = airports
+        self.handle_prefiles = handle_prefiles
 
     def check_for_updates(self):
         self.update_json(self.json_url)
@@ -64,7 +65,7 @@ class DataCollector:
 
                     self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
-                # auto_update cached callsigns
+            # auto_update cached callsigns
             file = open(self.cached_departures_file_path, 'wb')
             pickle.dump(self.printed_callsigns, file)
             file.close()
@@ -98,6 +99,7 @@ class DataCollector:
         
     def scan_pilots(self):
         connected_pilots = self.json_file['pilots']
+        if self.handle_prefiles: prefiled_pilots = self.json_file['prefiles']
         #lookupdefinitions = {"CD":"departure","GC":"departure","LC":"departure","TAR":"arrival","DR":"departure","COMBINED":"both"}
 
         # Determine what aircraft have disconnected and alert someone so the strip can be retrieved.
@@ -106,7 +108,7 @@ class DataCollector:
             disconnected.append(departure)
 
         # Interpreting/Filtering JSON Data
-        for i in range(len(connected_pilots)):
+        for i in range(len(connected_pilots)): #We are looking at CONNECTED PILOTS to see if their flight plan dropped out.
             #What field should we check for? Departing or Arriving?
             lookfor = self.control_area['stripType']
             # pilot at index i information
@@ -139,12 +141,42 @@ class DataCollector:
                 pass        
             except Exception as e2:
                 print(f"EXCEPTION in DATA COLLECTOR: {e2}")
+
+        #Print aircraft that pre-file since the PDC is gonna be available anyways. 10/23/2024 ^KK
+        if self.handle_prefiles: #Are we printing prefiles?
+            for proposal in range(len(prefiled_pilots)): #If we're handling prefiles, let's look at all the prefiled flight plans.
+                proposed_plan = prefiled_pilots[proposal]
+                pilot_callsign = proposed_plan['callsign'].upper()
+                if proposed_plan['callsign'] in self.callsign_list: disconnected.remove(pilot_callsign) #If we have already printed a prefile, don't alert that they disconnected.
+                else:
+                    if str(lookfor) == 'both': lookfor = 'departure'
+                    if lookfor == 'departure': #Do NOT process prefiled arrival strips...
+                        #The network moves flight plans back to the prefile list if they disconnect. Don't know what the logic is but let's filter out people who's departure time has PASSED.
+                        lookoutwindow = 16 #Let's ignore plans that are more than 16 hours in the "future" (less than 8 hours ago)
+                        lookoutwindow = lookoutwindow * 3600 #Convert lookout window to seconds
+                        planned_dep_time = proposed_plan['flight_plan']['deptime']
+                        time_now = time.gmtime().tm_hour*3600 + time.gmtime().tm_min*60
+                        lookoutwindow = time_now + lookoutwindow
+                        planned_dep_time = int(planned_dep_time[:2])*3600 + int(planned_dep_time[2:])*60
+                        if planned_dep_time >= 86400: 
+                            time_now = time_now - 86400
+                            planned_dep_time = planned_dep_time - 86400
+                        if (time_now <= planned_dep_time <= lookoutwindow):
+                            if proposed_plan['flight_plan']['departure'] in tuple(self.control_area['airports']): self.add_callsign_to_dep_list(pilot_callsign, proposed_plan, lookfor)
+                
             
         for user in disconnected:
             try:
+                callsign_info = self.callsign_list[user]['flight_plan']
+                callsign_flight_plan = callsign_info["route"], 
+                callsign_departure = callsign_info["departure"]
+                callsign_flightrules = callsign_info["flight_rules"]
+                removed_route = self.get_removed_route(callsign_flight_plan, callsign_departure, callsign_flightrules)
+                removed_route = removed_route.replace(f"{callsign_departure} ","")
                 self.remove_callsign_from_lists(user)
-                print(f"FLIGHT PLAN FOR {user} HAS TIMED OUT.")
-            except:
+                print(f"{str(time.gmtime().tm_hour).zfill(2)}{str(time.gmtime().tm_min).zfill(2)}Z: FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
+            except Exception as e2:
+                print(f"Exception removing flight plan: {e2}")
                 continue
         
 
@@ -169,3 +201,17 @@ class DataCollector:
     def update_json(self, json_url):
         r = requests.get(json_url)
         self.json_file = r.json()
+
+    def get_removed_route(self, flightplan:str, departure:str, flightrules:str):
+        flightplan = str(flightplan)
+        flightplan = flightplan.replace("(","")
+        flightplan = flightplan.replace(")","")
+        flightplan = flightplan.replace("'","")
+        flightplan = flightplan.replace("."," ")
+        flightplan = flightplan.replace("  "," ")
+        try: 
+            if flightplan.isalnum: removed_route = self.printer.format_flightplan(flightplan, departure, flightrules)
+            else: removed_route = "ERROR PARSING ROUTE"
+        except:
+            print(f"Error determining route for dropped flight plan: {flightplan} from {departure}")
+        return removed_route
