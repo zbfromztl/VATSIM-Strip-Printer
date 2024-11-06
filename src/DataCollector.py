@@ -174,7 +174,7 @@ class DataCollector:
                 removed_route = self.get_removed_route(callsign_flight_plan, callsign_departure, callsign_flightrules)
                 removed_route = removed_route.replace(f"{callsign_departure} ","")
                 self.remove_callsign_from_lists(user)
-                print(f"FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
+                print(f"{str(time.gmtime().tm_hour).zfill(2)}{str(time.gmtime().tm_min).zfill(2)}Z: FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
             except Exception as e2:
                 print(f"Exception removing flight plan: {e2}")
                 continue
