@@ -347,6 +347,13 @@ class Printer:
         except:
             flightplan_list = []
 
+        #If the flight plan has the departure runway or ATL2 in there, get rid of it.
+        try:
+            if flightplan_list[0].startswith("RW"): flightplan_list.pop(0)
+            if flightplan_list[0].startswith("ATL") and len(flightplan_list[0]) >= 4: flightplan_list.pop(0)
+        except:
+            pass
+
         # removes simbrief crap at start of flightplan
         i=0
         while(i < len(flightplan_list)):

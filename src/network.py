@@ -96,7 +96,7 @@ class Network():
                             if self.debug_mode: print(f"Server (Client) processing {message['data'].decode('utf-8')}")
                             self.process_inbound(message['data'].decode('utf-8'))
             for notified_socket in exception_socket:
-                print(f"Remvoing exception: {notified_socket}")
+                print(f"Removing exception: {notified_socket}")
                 self.sockets_list.remove(notified_socket)
                 del self.network_devices[notified_socket]
 
