@@ -34,7 +34,7 @@ class Network():
         self.header_len = 8
         if self.debug_mode: print(f"Header length is set to {self.header_len}.")
         self.network_devices = dict() #This is a list of all available "devices" on our server. Really, it should just list each position thats connected.
-        self.target_machines = set()  #This is a list of printers that we want our strips to go out to.
+        self.target_machines = dict()  #This is a list of printers that we want our strips to go out to.
 
     def initialize_networking(self):
         print("Initializing electronic flight strip transfer system configurator...")

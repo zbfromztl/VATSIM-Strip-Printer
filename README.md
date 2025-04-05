@@ -69,6 +69,8 @@ with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all availab
  * Align - Prints blank strip with singular line. Align line with mouth of printer to achieve serenity.
  * FRC (ACID) or SR (ACID) - Prints strip with all flight plan info.
  * GI (message) - Prints a strip of inputted text.
+ * printproposals - Prints a strip of all flight plans in the system. Useful if you lose track of the dropped flight plans.
+ * filter (item,item2,item3) - Add/Remove listed waypoints to the filter. Useful if you don't want every flight strip (for... a split position...)
 
 # ARMT commands (ATL only)
  * countproposals - Counts all the aircraft on the ground and organizes it based on filed departure gate.

@@ -44,6 +44,9 @@ class CallsignRequester:
             elif flag == "RECALL":
                 callsign_to_print = callsign_to_print[6:].strip()
                 self.printer.recall_inator(callsign_to_print)
+            elif flag == "FILTER":
+                set_filter = callsign_to_print[6:].strip()
+                self.printer.update_filters(set_filter)
             elif flag == "CURRENT PROPOSALS":
                 callsign_to_print = callsign_to_print[6:].strip()
                 current_callsign_list = self.data_collector.get_callsign_list()
@@ -85,6 +88,8 @@ class CallsignRequester:
             return "RECALL"
         if callsign_to_print[0:8] == "currentp":
             return "CURRENT PROPOSALS"
+        if callsign_to_print[0:6] == "filter":
+            return "FILTER"
 
         #What are we doing with this? Depends on what position the guy is working, maybe?
         #If they're NOT working Ground or Local, they shouldn't be scanning strips.

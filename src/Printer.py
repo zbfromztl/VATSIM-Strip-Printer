@@ -26,6 +26,7 @@ class Printer:
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
         self.recall_inator(":)","initialize")
+        self.filters = []
         pass
 
     def recall_inator(self, data, request = '', strip_type="aircraft"): #Maintain a list of the last strips printed...
@@ -75,9 +76,16 @@ class Printer:
     def input_callsign():
         callsign = input("Enter Callsign: ")
         return callsign.upper()
+    
+    def update_filters(self, requested_filter):
+        requested_filter = str(requested_filter).upper()
+        requested_filter = requested_filter.split(',')
+        for filtered_item in requested_filter:
+            if filtered_item in self.filters: self.filters.remove(filtered_item)
+            else: self.filters.append(filtered_item[:5])
+        print(f'Processing addition/removal of {requested_filter}... new filter list set: {self.filters}.')
 
     def print_callsign_data(self, callsign_data, requested_callsign, control_area, strip_type='departure'):
-        
         # callsign_data = self.data_collector.get_callsign_data(requested_callsign)
         if requested_callsign == "" or None:
             # Print blank flight strips
@@ -145,13 +153,26 @@ class Printer:
                 line1 = f'{flightplan} {destination}'
                 destination = ""
 
-            self.recall_inator(callsign, "update") #send to recall-inator
-            #print flight strip on printer
-            if self.printer:  #Check to see if we want to print paper strips
-                time.sleep(1)
-                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
-            else:
-                print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {line1}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
+
+            ###Flight strip filter - so you don't get every flight plan if you don't want every flight plan.
+            is_in_filter = False
+            if len(self.filters) > 0: #Are we filtering stuff?
+                line_check = []
+                for waypoint in line1.split(): line_check.append(waypoint[:5])
+                for filtah in self.filters: #if we are filtering for stuff, check each filter item against stuff in the route. filtah used instead of the Python Class filter
+                    if filtah in line_check: is_in_filter = True  #if the filter item is not in the route, break the loop so the flight plan doesn't print.
+            else: is_in_filter = True
+
+            if is_in_filter: #if the filter allowed it to pass through, print the strip
+                self.recall_inator(callsign, "update") #send to recall-inator
+
+                #print flight strip on printer
+                
+                if self.printer:  #Check to see if we want to print paper strips
+                    time.sleep(1)
+                    self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
+                else:
+                    print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {line1}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
                
                    
         elif callsign_data is not None and strip_type != "departure": #Temporary for arrival strips
@@ -189,11 +210,22 @@ class Printer:
 
             self.recall_inator(callsign, "update")
             pos_9a = f"{destination} {remarks}"
-            if self.printer:  #Check to see if we want to print paper strips
-                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = pos_9a, pos9C=remarks)
-            else:
-                # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
-                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, pos_9a, fp_type)
+
+            ###Flight strip filter - so you don't get every flight plan if you don't want every flight plan.
+            is_in_filter = False
+            if len(self.filters) > 0: #Are we filtering stuff?
+                line_check = []
+                for waypoint in line1.split(): line_check.append(waypoint[:5])
+                for filtah in self.filters: #if we are filtering for stuff, check each filter item against stuff in the route. filtah used instead of the Python Class filter
+                    if filtah in line_check: is_in_filter = True  #if the filter item is not in the route, break the loop so the flight plan doesn't print.
+            else: is_in_filter = True
+
+            if is_in_filter: #if the filter allowed it to pass through, print the strip
+                if self.printer:  #Check to see if we want to print paper strips
+                    self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = pos_9a, pos9C=remarks)
+                else:
+                    # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
+                    print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, pos_9a, fp_type)
 
         else:
             airfields = str.replace(str.replace(str.replace(str(list.copy(control_area['airports'])),"'",""),"[",""),"]","")
