@@ -19,7 +19,7 @@ from DataCollector import DataCollector
 
 class Network():
     def __init__(self, user_position, control_area:str, printer:Printer, data_collector:DataCollector) -> None:
-        self.debug_mode = True #For dev work... lol
+        self.debug_mode = False #For dev work... lol
         self.Privacy_mode = False
         #config initalization
         self.control_area = control_area

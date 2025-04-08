@@ -19,10 +19,25 @@ class Main():
         airports_path = "./data/airports.json"
         printerpositions_path = "./data/positions.json"
         waypoint_database = "./data/waypoint_database.json"
+
+                                  
+####       ,ad8888ba,    ,ad8888ba,    888b      88  88888888888  88    ,ad8888ba,   88        88  88888888ba          db    888888888888  88    ,ad8888ba,    888b      88  
+####      d8"'    `"8b  d8"'    `"8b   8888b     88  88           88   d8"'    `"8b  88        88  88      "8b        d88b        88       88   d8"'    `"8b   8888b     88  
+####     d8'           d8'        `8b  88 `8b    88  88           88  d8'            88        88  88      ,8P       d8'`8b       88       88  d8'        `8b  88 `8b    88  
+####     88            88          88  88  `8b   88  88aaaaa      88  88             88        88  88aaaaaa8P'      d8'  `8b      88       88  88          88  88  `8b   88  
+####     88            88          88  88   `8b  88  88"""""      88  88      88888  88        88  88""""88'       d8YaaaaY8b     88       88  88          88  88   `8b  88  
+####     Y8,           Y8,        ,8P  88    `8b 88  88           88  Y8,        88  88        88  88    `8b      d8""""""""8b    88       88  Y8,        ,8P  88    `8b 88  
+####      Y8a.    .a8P  Y8a.    .a8P   88     `8888  88           88   Y8a.    .a88  Y8a.    .a8P  88     `8b    d8'        `8b   88       88   Y8a.    .a8P   88     `8888  
+####       `"Y8888Y"'    `"Y8888Y"'    88      `888  88           88    `"Y88888P"    `"Y8888Y"'   88      `8b  d8'          `8b  88       88    `"Y8888Y"'    88      `888                                                                                                                                                        
+
+
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
-        allowNetwork = True
+        allowNetwork = False
         allowPrefiles = True
+        recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
+        unlimited_recall = False #should it store every callsign ever printed or not?
+
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -158,7 +173,7 @@ class Main():
         # if not print_cached_departures:
         printed_callsigns = current_callsigns_cached
         
-        printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
+        printer = Printer(acft_dict, do_we_print, waypoint_db, font, recall_limit, unlimited_recall) 
         data_collector = DataCollector(handle_prefiles, json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
         server_manager = Network(user_position, control_area, printer, data_collector)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)

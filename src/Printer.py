@@ -8,7 +8,7 @@ import math
 __author__ = "Simon Heck", "Zack B"
 
 class Printer:
-    def __init__(self, acrft_json, do_we_print, wp_db, font) -> None:
+    def __init__(self, acrft_json, do_we_print, wp_db, font, recall_limit=10, unlimited_recall=False) -> None:
         #Pull RECAT database
         self.printer = do_we_print
         self.recat_db = acrft_json
@@ -25,16 +25,17 @@ class Printer:
         #Recall data
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
+        self.recall_limit = recall_limit #If unlimited_recall is OFF, what is the max number of strips it should store?
+        self.unlimited_recall = unlimited_recall #should it store every callsign ever printed or not?
         self.recall_inator(":)","initialize")
+        #Need a spot to save set filter data
         self.filters = []
         pass
 
     def recall_inator(self, data, request = '', strip_type="aircraft"): #Maintain a list of the last strips printed...
-        unlimited_recall = False #should it store every callsign ever printed or not?
-        recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         self.staging_list = dict({})
         if request == "update":
-            if unlimited_recall:
+            if self.unlimited_recall:
                 self.processed_recalls = self.processed_recalls + 1
                 self.recall_list["recall_list"].update({f'recall{self.processed_recalls}':{'strip_type':strip_type, 'strip_content':data}})
             else:
@@ -42,16 +43,16 @@ class Printer:
                 self.processed_recalls = 1
                 for item in self.recall_list['recall_list']:
                     item = self.recall_list['recall_list'][item]
-                    if self.processed_recalls < recall_limit:
+                    if self.processed_recalls < self.recall_limit:
                         self.processed_recalls = self.processed_recalls + 1
                         self.staging_list["recall_list"].update({f'recall{self.processed_recalls}':{'strip_type':item['strip_type'],'strip_content':item['strip_content']}})
                     else:
                         continue        
                 self.recall_list = self.staging_list.copy()
         elif request == "initialize":
-            if unlimited_recall == False:
+            if self.unlimited_recall == False:
                 self.processed_recalls = 1
-                while self.processed_recalls < recall_limit:
+                while self.processed_recalls < self.recall_limit:
                     self.processed_recalls = self.processed_recalls + 1
                     self.recall_list["recall_list"].update({f'recall{self.processed_recalls}':{"strip_type":None, "strip_content":None}})
         elif data != "" and data.isdigit(): #Recall the item requested
@@ -141,12 +142,7 @@ class Printer:
                 cid = f"^FO120,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
             exit_fix = self.match_ATL_exit_fix(flightplan)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
-            if amendment_number < 1:
-                amendment_number = 0
-            amendment_number = str(amendment_number)
-            if amendment_number == '0':
-                amendment_number = ""
+            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-1)
 
             line1 = flightplan #Logic for "route" section of flight plan. If the route is not long enough to truncate, keep 'er all together.
             if line1[-1:] != "." and len(line1) < 24: 
@@ -190,12 +186,7 @@ class Printer:
             remarks=callsign_data['flight_plan']['remarks']
             remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 15)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
-            if amendment_number < 1:
-                amendment_number = 0
-            amendment_number = str(amendment_number)
-            if amendment_number == '0':
-                amendment_number = ""
+            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-1)
 
             aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
             # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
@@ -593,6 +584,13 @@ class Printer:
             return coordination_fixes[transition]
         except:
             return transition
+
+    def handle_strip_amendment_math(self,amendment_number):
+        if amendment_number < 1: amendment_number = 0
+        while amendment_number > 9: amendment_number = amendment_number - 9
+        amendment_number = str(amendment_number)
+        if amendment_number == '0': amendment_number = ""
+        return amendment_number
 
     def calculate_eta(self, aircraft_position:tuple, aircraft_groundspeed:int, coordination_fix):
         #So that we still get something that prints (6 minutes to coordination fix), even if someone files something stupid
