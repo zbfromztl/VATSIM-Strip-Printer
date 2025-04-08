@@ -10,6 +10,7 @@ from HazardousWX import WXRadio
 from EFSTS import Scanner
 from armt import AirspaceManagement
 from network import Network
+from ATISService import ATISInfoUhhh
 
 __author__ = "Simon Heck"
 
@@ -37,6 +38,7 @@ class Main():
         allowPrefiles = True
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         unlimited_recall = False #should it store every callsign ever printed or not?
+        doATISTracking = False
 
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
@@ -173,13 +175,14 @@ class Main():
         # if not print_cached_departures:
         printed_callsigns = current_callsigns_cached
         
-        printer = Printer(acft_dict, do_we_print, waypoint_db, font, recall_limit, unlimited_recall) 
+        printer = Printer(acft_dict, do_we_print, waypoint_db, font, recall_limit, unlimited_recall)
         data_collector = DataCollector(handle_prefiles, json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
         server_manager = Network(user_position, control_area, printer, data_collector)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
+        ATISServer = ATISInfoUhhh(control_area, printer, data_collector, json_refresh, airports)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
         
         #Determine if we need to run the server or not.
@@ -196,8 +199,9 @@ class Main():
         JSON_timer = threading.Thread(target=json_refresh.start_refreshing)
         # Thread3: automatically prints new flight strips when callsign list updated
         automated_strip_printing = threading.Thread(target=data_collector.scan_for_new_aircraft_automatic)
-        # Thread4: automatically print SIGMETs/AIRMETs every once in a while.
+        # Thread4: automatically print SIGMETs/AIRMETs every once in a while & handle ATIS tracking.
         wxradio = threading.Thread(target=wx_refresh.start_refreshing)
+        ATIStracker = threading.Thread(target=ATISServer.start_refreshing)
         # Thread5: Keep track of departure delays. Manage strip scanners.
         scans = threading.Thread(target=efsts.opsNet)
         airspace = threading.Thread(target=airspacemanagement.getSplit)
@@ -222,17 +226,15 @@ class Main():
         # start other threads
         JSON_timer.start()
         type_of_position = control_area["type"].upper()
-        if type_of_position != "TMU":
-            user_input.start()
-        else:
-            airspace.start()
+        if type_of_position != "TMU": user_input.start()
+        else: airspace.start()
 
-        if enablewxradio:
-            wxradio.start()
+        if enablewxradio: wxradio.start()
 
-        if type_of_position == "GC" or type_of_position == "LC":
-            scans.start()
+        if type_of_position == "GC" or type_of_position == "LC": scans.start()
         
+        if doATISTracking: ATIStracker.start()
+
         # Thread7 : Join server
         go_online = threading.Thread(target=server_manager.use_server)
         if do_we_network and not is_server: go_online.start() # If we *are* the server... it will error... lame.
