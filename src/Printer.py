@@ -373,7 +373,8 @@ class Printer:
         #If the flight plan has the departure runway or ATL2 in there, get rid of it.
         try:
             if flightplan_list[0].startswith("RW"): flightplan_list.pop(0)
-            if flightplan_list[0].startswith("ATL") and len(flightplan_list[0]) >= 4: flightplan_list.pop(0)
+            if flightplan_list[0][0].isnumeric() and len(flightplan_list[0]) <= 3: flightplan_list.pop(0)
+            if flightplan_list[0].startswith(departure[:3]) and len(flightplan_list[0]) >= 4: flightplan_list.pop(0)
         except:
             pass
 
