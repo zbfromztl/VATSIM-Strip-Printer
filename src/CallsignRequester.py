@@ -44,6 +44,11 @@ class CallsignRequester:
             elif flag == "RECALL":
                 callsign_to_print = callsign_to_print[6:].strip()
                 self.printer.recall_inator(callsign_to_print)
+            elif flag == "BAN":
+                callsign_to_print = callsign_to_print[3:].strip().upper()
+                if callsign_to_print in self.data_collector.banned_callsigns: self.data_collector.banned_callsigns.remove(callsign_to_print)
+                else: self.data_collector.banned_callsigns.add(callsign_to_print)
+                print(f'BANNED CALLSIGN LIST UPDATED: {self.data_collector.banned_callsigns}')
             elif flag == "FILTER":
                 set_filter = callsign_to_print[6:].strip()
                 self.printer.update_filters(set_filter)
@@ -55,6 +60,11 @@ class CallsignRequester:
                 if len(current_callsigns) > 2: current_callsigns = current_callsigns[2:]
                 else: current_callsigns = "THERE ARE NO CURRENT PROPOSALS."
                 self.printer.print_gi_messages(current_callsigns)
+            elif flag == "DUMPED":
+                if len(self.data_collector.dumped_flights) > 0: 
+                    self.printer.print_gi_messages(f'FLIGHT PLANS THAT TIMED OUT: {self.data_collector.dumped_flights}... SETTING LIST TO EMPTY.')
+                    self.data_collector.dumped_flights = set()
+                else: self.printer.print_gi_messages(f'FLIGHT PLAN TIME OUT LIST EMPTY.')
             elif flag == "FRC":                                         #prints full strips. This definitely needs to be cleaned up in the future...
                 callsign_to_print = callsign_to_print.upper()
                 if callsign_to_print[0:3] == "SR ":
@@ -88,8 +98,12 @@ class CallsignRequester:
             return "RECALL"
         if callsign_to_print[0:8] == "currentp":
             return "CURRENT PROPOSALS"
+        if callsign_to_print[0:4] == "ban ":
+            return "BAN"
         if callsign_to_print[0:6] == "filter":
             return "FILTER"
+        if callsign_to_print[0:6] == "dumped":
+            return "DUMPED"
 
         #What are we doing with this? Depends on what position the guy is working, maybe?
         #If they're NOT working Ground or Local, they shouldn't be scanning strips.

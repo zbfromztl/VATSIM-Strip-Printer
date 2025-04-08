@@ -21,7 +21,7 @@ class Main():
         waypoint_database = "./data/waypoint_database.json"
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
-        allowNetwork = False
+        allowNetwork = True
         allowPrefiles = True
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
