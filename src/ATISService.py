@@ -51,9 +51,9 @@ class ATISInfoUhhh:
         global_online_atis = []
         dumped_atis = []
         for connection in atis_stations: 
-            if connection['text_atis'] is None or connection['atis_code'] is None: break
+            if connection['text_atis'] is None or connection['atis_code'] is None: continue
             # print(connection['text_atis'])
-            if len(connection['text_atis']) <= 2: break
+            if len(connection['text_atis']) <= 2: continue
             airport, atis_type = self.check_airport(connection['callsign'])
             atis_letter = connection['atis_code']
             global_online_atis.append(connection['callsign'])
@@ -107,10 +107,15 @@ class ATISInfoUhhh:
         atis_changes=atis_changes.replace(']',"")
         # print(f'Currently stored: {self.ATISManager}')
         # print(f'debug... {atis_changes} ... {len(atis_changes)}')
-        if len(atis_changes) > 0: self.printer.print_gi_messages(atis_changes)
+        if len(atis_changes) > 0: 
+            while len(atis_changes) > 300:
+                self.printer.print_gi_messages(atis_changes[:300])
+                atis_changes = atis_changes[300:]
+                time.sleep(3)
+            else: self.printer.print_gi_messages(atis_changes)
 
     def start_refreshing(self, delay:int = 60):
-        time.sleep(self.jsonTimer.calculateDelay())
+        time.sleep(self.jsonTimer.calculateDelay()+45)
         while(True):
             self.scan_atis()
             time.sleep(delay)

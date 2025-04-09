@@ -21,7 +21,8 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
-        self.remark_prefix = "O"
+        # self.remark_prefix = "°"
+        self.remark_prefix = "*"
         #Recall data
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
@@ -362,6 +363,8 @@ class Printer:
             flightplan_list.remove("DCT")
         if "dct" in flightplan_list:
             flightplan_list.remove("dct")
+        if "DIRECT" in flightplan_list:
+            flightplan_list.remove("DIRECT")
         
         #If the departure airport is filed in the flight plan, remove it.
         try:
@@ -374,7 +377,7 @@ class Printer:
         try:
             if flightplan_list[0].startswith("RW"): flightplan_list.pop(0)
             if flightplan_list[0][0].isnumeric() and len(flightplan_list[0]) <= 3: flightplan_list.pop(0)
-            if flightplan_list[0].startswith(departure[:3]) and len(flightplan_list[0]) >= 4: flightplan_list.pop(0)
+            if flightplan_list[0].startswith(departure[-3:]) and len(flightplan_list[0]) <= 4: flightplan_list.pop(0)
         except:
             pass
 
