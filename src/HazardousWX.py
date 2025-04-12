@@ -23,10 +23,10 @@ class WXRadio:
         self.fetch_sigmet(self.sigmetJSON, self.control_area["airports"])
         self.fetch_cwas(self.cwasJSON, self.airports[self.control_area["airports"][0]]["ARTCC"])
         self.first_message_caching_complete = True
-        if len(self.first_message_cache) > 332: #Need to split it cuz too long hehe
-            while len(self.first_message_cache) > 332:
-                self.printer.print_gi_messages(self.first_message_cache[:332])
-                self.first_message_cache = self.first_message_cache[322:]
+        if len(self.first_message_cache) > 320: #Need to split it cuz too long hehe
+            while len(self.first_message_cache) > 320:
+                self.printer.print_gi_messages(self.first_message_cache[:320])
+                self.first_message_cache = self.first_message_cache[320:]
                 time.sleep(2.5)
         else: self.printer.print_gi_messages(self.first_message_cache)
         self.first_message_cache = ''

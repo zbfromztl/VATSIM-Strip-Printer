@@ -10,6 +10,7 @@ class DataCollector:
         self.callsign_list = {}
         self.banned_callsigns = set()
         self.dumped_flights = set()
+        self.auto_ban_manager = {}
         self.json_url = json_url
         self.control_area = control_area
         self.printer = printer
@@ -20,6 +21,7 @@ class DataCollector:
         self.fence = positions['fence_data']
         self.airports = airports
         self.handle_prefiles = handle_prefiles
+        self.auto_ban_limit = 3
 
     def check_for_updates(self):
         self.update_json(self.json_url)
@@ -33,6 +35,14 @@ class DataCollector:
     
     def add_callsign_to_dep_list(self, pilot_callsign:str, new_pilot_data_associated_with_callsign:dict, strip_type):
         if pilot_callsign not in self.banned_callsigns:
+            if pilot_callsign in self.dumped_flights: 
+                self.dumped_flights.pop(pilot_callsign)
+                if pilot_callsign in self.auto_ban_manager:
+                    if self.auto_ban_manager[pilot_callsign] >= self.auto_ban_limit:
+                        self.banned_callsigns.add(pilot_callsign)
+                        print(f'{time.strftime("%H%M",time.gmtime())}: Adding {pilot_callsign} to banned callsigns... (maximum relog limit: {self.auto_ban_limit})')
+                    else: self.auto_ban_manager[pilot_callsign] = self.auto_ban_manager[pilot_callsign]+1
+                else: self.auto_ban_manager.update({pilot_callsign:1})
             new_pilot_route:str = new_pilot_data_associated_with_callsign['flight_plan']['route']
             if pilot_callsign in self.dumped_flights: self.dumped_flights.remove(pilot_callsign)
             if '+' in new_pilot_route:

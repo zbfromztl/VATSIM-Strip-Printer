@@ -90,9 +90,20 @@ class CallsignRequester:
                 else: current_callsigns = "THERE ARE NO CURRENT PROPOSALS."
                 self.printer.print_gi_messages(current_callsigns)
             elif flag == "DUMPED":
-                if len(self.data_collector.dumped_flights) > 0: 
-                    self.printer.print_gi_messages(f'FLIGHT PLANS THAT TIMED OUT: {self.data_collector.dumped_flights}... SETTING LIST TO EMPTY.')
-                    self.data_collector.dumped_flights = set()
+                dumped_plans = self.data_collector.dumped_flights.copy()
+                self.data_collector.dumped_flights = set()
+                if len(dumped_plans) > 0: 
+                    dumped_flight_string = 'FLIGHT PLANS THAT TIMED OUT: '
+                    for aircraft_callsign in dumped_plans:
+                        if len(dumped_flight_string) + len(aircraft_callsign) <= 320: dumped_flight_string = f"{dumped_flight_string} {aircraft_callsign}"
+                        else:
+                            self.printer.print_gi_messages(dumped_flight_string)
+                            dumped_flight_string = str(aircraft_callsign)
+                    if len(dumped_flight_string)+26 <= 320: 
+                        self.printer.print_gi_messages(dumped_flight_string[-26:])
+                        time.sleep(1)
+                        self.printer.print_gi_messages(f'{dumped_flight_string[:-26]}... SETTING LIST TO EMPTY.')
+                    else: self.printer.print_gi_messages(f'{dumped_flight_string}... SETTING LIST TO EMPTY.')
                 else: self.printer.print_gi_messages(f'FLIGHT PLAN TIME OUT LIST EMPTY.')
             elif flag == "FRC":                                         #prints full strips. This definitely needs to be cleaned up in the future...
                 callsign_to_print = callsign_to_print.upper()

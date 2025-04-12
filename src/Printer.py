@@ -255,7 +255,14 @@ class Printer:
                   ^PQ1,0,1,Y
                   ^XZ""")
 
-    def print_gi_messages(self, message):
+    def print_gi_messages(self, message): #Handler for print_gi_message
+        max_message_length = 320
+        while len(message) > 0:
+            self.print_gi_message(message[:max_message_length])
+            message = message[max_message_length:]
+            time.sleep(1)
+
+    def print_gi_message(self, message): #Name change to allow for print_gi_messages (original) to process shortening without disrupting other places in program...
         message = message.upper()
         self.recall_inator(message, "update", "gi")
         if self.printer: #Check to see if we want to print paper strips

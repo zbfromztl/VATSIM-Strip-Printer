@@ -108,9 +108,9 @@ class ATISInfoUhhh:
         # print(f'Currently stored: {self.ATISManager}')
         # print(f'debug... {atis_changes} ... {len(atis_changes)}')
         if len(atis_changes) > 0: 
-            while len(atis_changes) > 300:
-                self.printer.print_gi_messages(atis_changes[:300])
-                atis_changes = atis_changes[300:]
+            while len(atis_changes) > 320:
+                self.printer.print_gi_messages(atis_changes[:320])
+                atis_changes = atis_changes[320:]
                 time.sleep(3)
             else: self.printer.print_gi_messages(atis_changes)
 
@@ -176,8 +176,8 @@ class ATISInfoUhhh:
                     atis_content['visibility']=content_item
                     vis_pos = atis_raw.find(content_item)+len(content_item)
                 elif content_item.find('/') != -1:
-                    atis_content['temp']=content_item.split('/')[0]
-                    atis_content['dewpt']=content_item.split('/')[1]
+                    if len(content_item.split('/')[0]) >= 3: atis_content['temp']=content_item.split('/')[0]
+                    if len(content_item.split('/')[1]) >= 3: atis_content['dewpt']=content_item.split('/')[1]
                     temp_pos = atis_raw.find(content_item)
                 elif content_item.startswith('A') and len(content_item)==5 and content_item[1:4].isnumeric(): atis_content['altimeter'] = content_item
                 elif content_item =='.': break
