@@ -8,7 +8,7 @@ import math
 __author__ = "Simon Heck", "Zack B"
 
 class Printer:
-    def __init__(self, acrft_json, do_we_print, wp_db, font) -> None:
+    def __init__(self, acrft_json, do_we_print, wp_db, font, recall_limit=10, unlimited_recall=False) -> None:
         #Pull RECAT database
         self.printer = do_we_print
         self.recat_db = acrft_json
@@ -21,19 +21,22 @@ class Printer:
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
-        self.remark_prefix = "O"
+        # self.remark_prefix = "°"
+        self.remark_prefix = "*"
         #Recall data
         self.processed_recalls = 0
         self.recall_list = dict({"recall_list":{"recall0":{"strip_type":None,"strip_content":None}}})
+        self.recall_limit = recall_limit #If unlimited_recall is OFF, what is the max number of strips it should store?
+        self.unlimited_recall = unlimited_recall #should it store every callsign ever printed or not?
         self.recall_inator(":)","initialize")
+        #Need a spot to save set filter data
+        self.filters = []
         pass
 
     def recall_inator(self, data, request = '', strip_type="aircraft"): #Maintain a list of the last strips printed...
-        unlimited_recall = False #should it store every callsign ever printed or not?
-        recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         self.staging_list = dict({})
         if request == "update":
-            if unlimited_recall:
+            if self.unlimited_recall:
                 self.processed_recalls = self.processed_recalls + 1
                 self.recall_list["recall_list"].update({f'recall{self.processed_recalls}':{'strip_type':strip_type, 'strip_content':data}})
             else:
@@ -41,16 +44,16 @@ class Printer:
                 self.processed_recalls = 1
                 for item in self.recall_list['recall_list']:
                     item = self.recall_list['recall_list'][item]
-                    if self.processed_recalls < recall_limit:
+                    if self.processed_recalls < self.recall_limit:
                         self.processed_recalls = self.processed_recalls + 1
                         self.staging_list["recall_list"].update({f'recall{self.processed_recalls}':{'strip_type':item['strip_type'],'strip_content':item['strip_content']}})
                     else:
                         continue        
                 self.recall_list = self.staging_list.copy()
         elif request == "initialize":
-            if unlimited_recall == False:
+            if self.unlimited_recall == False:
                 self.processed_recalls = 1
-                while self.processed_recalls < recall_limit:
+                while self.processed_recalls < self.recall_limit:
                     self.processed_recalls = self.processed_recalls + 1
                     self.recall_list["recall_list"].update({f'recall{self.processed_recalls}':{"strip_type":None, "strip_content":None}})
         elif data != "" and data.isdigit(): #Recall the item requested
@@ -75,9 +78,16 @@ class Printer:
     def input_callsign():
         callsign = input("Enter Callsign: ")
         return callsign.upper()
+    
+    def update_filters(self, requested_filter):
+        requested_filter = str(requested_filter).upper()
+        requested_filter = requested_filter.split(',')
+        for filtered_item in requested_filter:
+            if filtered_item in self.filters: self.filters.remove(filtered_item)
+            else: self.filters.append(filtered_item[:5])
+        print(f'Processing addition/removal of {requested_filter}... new filter list set: {self.filters}.')
 
     def print_callsign_data(self, callsign_data, requested_callsign, control_area, strip_type='departure'):
-        
         # callsign_data = self.data_collector.get_callsign_data(requested_callsign)
         if requested_callsign == "" or None:
             # Print blank flight strips
@@ -133,25 +143,33 @@ class Printer:
                 cid = f"^FO120,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
             exit_fix = self.match_ATL_exit_fix(flightplan)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
-            if amendment_number < 1:
-                amendment_number = 0
-            amendment_number = str(amendment_number)
-            if amendment_number == '0':
-                amendment_number = ""
+            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-1)
 
             line1 = flightplan #Logic for "route" section of flight plan. If the route is not long enough to truncate, keep 'er all together.
             if line1[-1:] != "." and len(line1) < 24: 
                 line1 = f'{flightplan} {destination}'
                 destination = ""
 
-            self.recall_inator(callsign, "update") #send to recall-inator
-            #print flight strip on printer
-            if self.printer:  #Check to see if we want to print paper strips
-                time.sleep(1)
-                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
-            else:
-                print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {line1}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
+
+            ###Flight strip filter - so you don't get every flight plan if you don't want every flight plan.
+            is_in_filter = False
+            if len(self.filters) > 0: #Are we filtering stuff?
+                line_check = []
+                for waypoint in line1.split(): line_check.append(waypoint[:5])
+                for filtah in self.filters: #if we are filtering for stuff, check each filter item against stuff in the route. filtah used instead of the Python Class filter
+                    if filtah in line_check: is_in_filter = True  #if the filter item is not in the route, break the loop so the flight plan doesn't print.
+            else: is_in_filter = True
+
+            if is_in_filter: #if the filter allowed it to pass through, print the strip
+                self.recall_inator(callsign, "update") #send to recall-inator
+
+                #print flight strip on printer
+                
+                if self.printer:  #Check to see if we want to print paper strips
+                    time.sleep(1)
+                    self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
+                else:
+                    print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {line1}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
                
                    
         elif callsign_data is not None and strip_type != "departure": #Temporary for arrival strips
@@ -169,12 +187,7 @@ class Printer:
             remarks=callsign_data['flight_plan']['remarks']
             remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 15)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = int(callsign_data['flight_plan']['revision_id'])-1
-            if amendment_number < 1:
-                amendment_number = 0
-            amendment_number = str(amendment_number)
-            if amendment_number == '0':
-                amendment_number = ""
+            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-1)
 
             aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
             # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
@@ -189,11 +202,22 @@ class Printer:
 
             self.recall_inator(callsign, "update")
             pos_9a = f"{destination} {remarks}"
-            if self.printer:  #Check to see if we want to print paper strips
-                self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = pos_9a, pos9C=remarks)
-            else:
-                # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
-                print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, pos_9a, fp_type)
+
+            ###Flight strip filter - so you don't get every flight plan if you don't want every flight plan.
+            is_in_filter = False
+            if len(self.filters) > 0: #Are we filtering stuff?
+                line_check = []
+                for waypoint in line1.split(): line_check.append(waypoint[:5])
+                for filtah in self.filters: #if we are filtering for stuff, check each filter item against stuff in the route. filtah used instead of the Python Class filter
+                    if filtah in line_check: is_in_filter = True  #if the filter item is not in the route, break the loop so the flight plan doesn't print.
+            else: is_in_filter = True
+
+            if is_in_filter: #if the filter allowed it to pass through, print the strip
+                if self.printer:  #Check to see if we want to print paper strips
+                    self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos5=assigned_sq, pos6 = prevfix, pos7 = star, pos8 = eta, pos9=fp_type, pos9A = pos_9a, pos9C=remarks)
+                else:
+                    # print(f'{callsign_data["callsign"]} inbound to {callsign_data["flight_plan"]["arrival"]}.')
+                    print(callsign, ac_type, amendment_number, computer_id, assigned_sq, prevfix, star, eta, pos_9a, fp_type)
 
         else:
             airfields = str.replace(str.replace(str.replace(str(list.copy(control_area['airports'])),"'",""),"[",""),"]","")
@@ -231,7 +255,14 @@ class Printer:
                   ^PQ1,0,1,Y
                   ^XZ""")
 
-    def print_gi_messages(self, message):
+    def print_gi_messages(self, message): #Handler for print_gi_message
+        max_message_length = 320
+        while len(message) > 0:
+            self.print_gi_message(message[:max_message_length])
+            message = message[max_message_length:]
+            time.sleep(1)
+
+    def print_gi_message(self, message): #Name change to allow for print_gi_messages (original) to process shortening without disrupting other places in program...
         message = message.upper()
         self.recall_inator(message, "update", "gi")
         if self.printer: #Check to see if we want to print paper strips
@@ -272,6 +303,7 @@ class Printer:
         route = route.replace("+", "")
         return route
     # TODO Get rid of N0454F360 Shit
+
     def format_remarks(self, remark_string:str, length:int=25):
         # remove voice type
         if "/V/" in remark_string:
@@ -294,26 +326,21 @@ class Printer:
         else:
             string_list = remark_string
 
-        if isinstance(string_list,str): #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
-            pass
+        if isinstance(string_list,str): pass #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
             # ret_string = string_list[0:length-1]
         else:
-            if len(string_list) > 1:
-                ret_string = f"{string_list[1][:length]}"
-            else:
-                ret_string = string_list[0:length]
+            if len(string_list) > 1: ret_string = f"{string_list[1][:length]}"
+            else: ret_string = string_list[0:length]
             
 
         # If the remaining remarks string has more than 22 (or requested number of...) characters, cut it down to 22/requested number & append a '***' to the end
         try:
             if ret_string is not None:
-                if(len(ret_string)) < length:
-                    return f"{self.remark_prefix}{ret_string}" 
+                if(len(ret_string)) < length: return f"{self.remark_prefix}{ret_string}" 
                 else:
                     return f"{self.remark_prefix}{ret_string[0:length-4]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
                     #TODO: Fix logic for "shortening" detection (so that the text doesn't write on itself...)
-        except:
-            return ""
+        except: return ""
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
@@ -339,6 +366,8 @@ class Printer:
             flightplan_list.remove("DCT")
         if "dct" in flightplan_list:
             flightplan_list.remove("dct")
+        if "DIRECT" in flightplan_list:
+            flightplan_list.remove("DIRECT")
         
         #If the departure airport is filed in the flight plan, remove it.
         try:
@@ -350,7 +379,8 @@ class Printer:
         #If the flight plan has the departure runway or ATL2 in there, get rid of it.
         try:
             if flightplan_list[0].startswith("RW"): flightplan_list.pop(0)
-            if flightplan_list[0].startswith("ATL") and len(flightplan_list[0]) >= 4: flightplan_list.pop(0)
+            if flightplan_list[0][0].isnumeric() and len(flightplan_list[0]) <= 3: flightplan_list.pop(0)
+            if flightplan_list[0].startswith(departure[-3:]) and len(flightplan_list[0]) <= 4: flightplan_list.pop(0)
         except:
             pass
 
@@ -370,7 +400,7 @@ class Printer:
                 return  f"+{departure} {build_string}+"
             elif i >= 3:
                 build_string = build_string.strip()
-                return f"{departure} {build_string}. / ."
+                return f"{departure} {build_string} . /."
             
             build_string = f"{build_string}{flightplan_list[i]} "
         build_string = f'{departure} {build_string}'
@@ -561,6 +591,13 @@ class Printer:
             return coordination_fixes[transition]
         except:
             return transition
+
+    def handle_strip_amendment_math(self,amendment_number):
+        if amendment_number < 1: amendment_number = 0
+        while amendment_number > 9: amendment_number = amendment_number - 9
+        amendment_number = str(amendment_number)
+        if amendment_number == '0': amendment_number = ""
+        return amendment_number
 
     def calculate_eta(self, aircraft_position:tuple, aircraft_groundspeed:int, coordination_fix):
         #So that we still get something that prints (6 minutes to coordination fix), even if someone files something stupid

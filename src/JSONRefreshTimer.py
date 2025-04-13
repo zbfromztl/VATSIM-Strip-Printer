@@ -11,13 +11,20 @@ class JSONRefreshTimer:
         self.json_url = json_url
 
     def start_refreshing(self, delay:int = 15):
-        self.calculateDelay(self.json_url)
+        self.handleDelay()
         while(True):
             self.data_collector.check_for_updates()
             time.sleep(delay)
 
-    def calculateDelay(self, json_url):
+    def handleDelay(self):
         print("Syncing data... please wait!")
+        timeToWait = self.calculateDelay()
+        print(f"Estimated wait time until next refresh is {str(timeToWait)} seconds. Unlocking program. Happy stripping!")
+        time.sleep(timeToWait)
+        return
+
+    def calculateDelay(self):
+        json_url = self.json_url
         start_time = (requests.get(json_url).json())["general"]["update_timestamp"]
         jsonSeconds = re.findall(":..", start_time) #find seconds
         jsonSeconds = int(re.sub(":","",jsonSeconds[1])) #clean up seconds so we can make it an integer
@@ -45,6 +52,4 @@ class JSONRefreshTimer:
         timeToWait = timeToWait + 1 # Add 1 second as a buffer incase of drift or whatever
         if timeToWait == 16:
             timeToWait = 0 #Literally means it doesn't need to refresh lol
-        print(f"Estimated wait time until next refresh is {str(timeToWait)} seconds. Unlocking program. Happy stripping!")
-        time.sleep(timeToWait)
-        return
+        return timeToWait

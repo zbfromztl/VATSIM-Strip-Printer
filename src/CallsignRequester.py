@@ -44,14 +44,70 @@ class CallsignRequester:
             elif flag == "RECALL":
                 callsign_to_print = callsign_to_print[6:].strip()
                 self.printer.recall_inator(callsign_to_print)
+            elif flag == "PRINTER":
+                if self.printer.printer: self.printer.printer = False
+                else: self.printer.printer = True
+            elif flag == "UPPER_AIR_REPORT":
+                print('Loading PIREP form...')
+                time.sleep(.5) #https://www.faasafety.gov/files/helpcontent/Courses/One%20Flight%20One%20PIREP/ARTICULATE%20FILES/PIREP/story_content/external_files/PIREP_FORM.pdf
+                type_of_ua = input("Enter type of PIREP (UA for routine or UUA for urgent): ")
+                location = f'/OV {input("Enter location: ")}'
+                report_time = f'/TM {input("Enter time (leave blank if now): ")}'
+                if report_time.strip() == '/TM': report_time = f'/TM {time.strftime("%H%M",time.gmtime())}'
+                altitude = f'/FL {input("Enter flight level (FL050, FL350, etc): ")}'
+                ac_type = f'/TP {input("Enter aircraft type: ")}'
+                print("Now that the mandatory items are covered, let's fill in the optional items. Leave it blank if you want to skip the item.")
+                time.sleep(1)
+                sky_cover = f' /SK {input("Enter Sky Cover: ")}'
+                if sky_cover.strip() == '/SK': sky_cover = ''
+                weather_vis = f' /WX {input("Enter Visibility/Wx (vis first): ")}'
+                if weather_vis.strip() == '/WX': weather_vis = ''
+                temp = f' /TA {input("Enter Temperature (C, if below 0, prefix with -): ")}'
+                if temp.strip() == '/TA': temp = ''
+                wind = f' /WV {input("Enter Wind (Direction/Speed in 6 digits... 270045): ")}'
+                if wind.strip() == '/WV': wind = ''
+                turb = f' /TB {input("Enter Turbulence (CAT/CHOP LIGT-MOD BLO-090, EXTRM): ")}'
+                if turb.strip() == '/TB': turb = ''
+                icing = f' /IC {input("Enter Icing Conditions (LGT-MDT RIME, SVR CLR): ")}'
+                if icing.strip() == '/IC': icing = ''
+                remarks = f' /RM {input("Enter Remarks (most hazardous items first): ")}'
+                if remarks.strip() == '/RM': remarks = ''
+                self.printer.print_gi_messages(f'GI {type_of_ua} {location} {report_time} {altitude} {ac_type}{sky_cover}{weather_vis}{temp}{wind}{turb}{icing}{remarks}'.upper())
+            elif flag == "BAN":
+                callsign_to_print = callsign_to_print[3:].strip().upper()
+                if callsign_to_print in self.data_collector.banned_callsigns: self.data_collector.banned_callsigns.remove(callsign_to_print)
+                else: self.data_collector.banned_callsigns.add(callsign_to_print)
+                print(f'BANNED CALLSIGN LIST UPDATED: {self.data_collector.banned_callsigns}')
+            elif flag == "FILTER":
+                set_filter = callsign_to_print[6:].strip()
+                self.printer.update_filters(set_filter)
             elif flag == "CURRENT PROPOSALS":
                 callsign_to_print = callsign_to_print[6:].strip()
-                current_callsign_list = self.data_collector.get_callsign_list()
+                current_callsign_list_dictionary = self.data_collector.get_callsign_list()
+                current_callsign_list = list()
+                for callsign in current_callsign_list_dictionary:  current_callsign_list.append(callsign)
+                current_callsign_list.sort()
                 current_callsigns = ""
-                for callsign in current_callsign_list: current_callsigns = f"{current_callsigns}, {callsign} (P{current_callsign_list[callsign]['flight_plan']['deptime']})"
+                for callsign in current_callsign_list: current_callsigns = f"{current_callsigns}, {callsign} (P{current_callsign_list_dictionary[callsign]['flight_plan']['deptime']})"
                 if len(current_callsigns) > 2: current_callsigns = current_callsigns[2:]
                 else: current_callsigns = "THERE ARE NO CURRENT PROPOSALS."
                 self.printer.print_gi_messages(current_callsigns)
+            elif flag == "DUMPED":
+                dumped_plans = self.data_collector.dumped_flights.copy()
+                self.data_collector.dumped_flights = set()
+                if len(dumped_plans) > 0: 
+                    dumped_flight_string = 'FLIGHT PLANS THAT TIMED OUT: '
+                    for aircraft_callsign in dumped_plans:
+                        if len(dumped_flight_string) + len(aircraft_callsign) <= 320: dumped_flight_string = f"{dumped_flight_string} {aircraft_callsign}"
+                        else:
+                            self.printer.print_gi_messages(dumped_flight_string)
+                            dumped_flight_string = str(aircraft_callsign)
+                    if len(dumped_flight_string)+26 >= 320: 
+                        self.printer.print_gi_messages(dumped_flight_string[-26:])
+                        time.sleep(1)
+                        self.printer.print_gi_messages(f'{dumped_flight_string[:-26]}... SETTING LIST TO EMPTY.')
+                    else: self.printer.print_gi_messages(f'{dumped_flight_string}... SETTING LIST TO EMPTY.')
+                else: self.printer.print_gi_messages(f'FLIGHT PLAN TIME OUT LIST EMPTY.')
             elif flag == "FRC":                                         #prints full strips. This definitely needs to be cleaned up in the future...
                 callsign_to_print = callsign_to_print.upper()
                 if callsign_to_print[0:3] == "SR ":
@@ -85,6 +141,16 @@ class CallsignRequester:
             return "RECALL"
         if callsign_to_print[0:8] == "currentp":
             return "CURRENT PROPOSALS"
+        if callsign_to_print[0:7] == "printer":
+            return "PRINTER"
+        if callsign_to_print[0:5] == "pirep":
+            return "UPPER_AIR_REPORT"
+        if callsign_to_print[0:4] == "ban ":
+            return "BAN"
+        if callsign_to_print[0:6] == "filter":
+            return "FILTER"
+        if callsign_to_print[0:6] == "dumped":
+            return "DUMPED"
 
         #What are we doing with this? Depends on what position the guy is working, maybe?
         #If they're NOT working Ground or Local, they shouldn't be scanning strips.

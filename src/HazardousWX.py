@@ -15,10 +15,21 @@ class WXRadio:
         self.control_area = []
         self.control_area = control_area
         self.printer = printer
+        self.first_message_caching_complete = False
+        self.first_message_cache = ''
 
     def start_refreshing(self, delay:int = 300):
+        time.sleep(10)
         self.fetch_sigmet(self.sigmetJSON, self.control_area["airports"])
         self.fetch_cwas(self.cwasJSON, self.airports[self.control_area["airports"][0]]["ARTCC"])
+        self.first_message_caching_complete = True
+        if len(self.first_message_cache) > 320: #Need to split it cuz too long hehe
+            while len(self.first_message_cache) > 320:
+                self.printer.print_gi_messages(self.first_message_cache[:320])
+                self.first_message_cache = self.first_message_cache[320:]
+                if self.printer.printer: time.sleep(2.5)
+        if len(self.first_message_cache.strip())> 0: self.printer.print_gi_messages(self.first_message_cache) #this used to be "else" but then it wasn't printing what was left over after shortening...
+        self.first_message_cache = ''
         time.sleep(self.wxsync())
         while(True):
             self.fetch_sigmet(self.sigmetJSON, self.control_area["airports"])
@@ -66,10 +77,12 @@ class WXRadio:
                     try:
                         gi_message = (f'{rawsigmet[0]}{rawsigmet[1]}{rawsigmet[2]}{rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[5]}... {rawsigmet[6]}{rawsigmet[7]}')
                     #    self.printer.print_gi_messages(f'{rawsigmet[2]} {rawsigmet[3]}... {rawsigmet[4]}... {rawsigmet[6]}{rawsigmet[7]}')
-                        self.printer.print_gi_messages(gi_message)
+                        if self.first_message_caching_complete: self.printer.print_gi_messages(gi_message)
+                        else: self.first_message_cache = f'{self.first_message_cache} {gi_message}'
                     except:
                         gi_message = i["rawAirSigmet"]
-                        self.printer.print_gi_messages(gi_message)
+                        if self.first_message_caching_complete: self.printer.print_gi_messages(gi_message)
+                        else: self.first_message_cache = f'{self.first_message_cache} {gi_message}'
 
 
                 # AIRMETs are no longer eligible for dissemination in the CONUS
@@ -96,7 +109,8 @@ class WXRadio:
                 hazard = advzy["text"]
                 # print(f'GI G1 {cwsu} CWA {id} for {hazard}.')
                 gi_message = f'***{cwsu} CWA {id} for {hazard}'
-                self.printer.print_gi_messages(gi_message)
+                if self.first_message_caching_complete: self.printer.print_gi_messages(gi_message)
+                else: self.first_message_cache = f'{self.first_message_cache} {gi_message}'
                 self.cwa_list.append(id)
 
     def wxsync(self):
