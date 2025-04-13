@@ -27,8 +27,8 @@ class WXRadio:
             while len(self.first_message_cache) > 320:
                 self.printer.print_gi_messages(self.first_message_cache[:320])
                 self.first_message_cache = self.first_message_cache[320:]
-                time.sleep(2.5)
-        else: self.printer.print_gi_messages(self.first_message_cache)
+                if self.printer.printer: time.sleep(2.5)
+        if len(self.first_message_cache.strip())> 0: self.printer.print_gi_messages(self.first_message_cache) #this used to be "else" but then it wasn't printing what was left over after shortening...
         self.first_message_cache = ''
         time.sleep(self.wxsync())
         while(True):

@@ -83,9 +83,12 @@ class CallsignRequester:
                 self.printer.update_filters(set_filter)
             elif flag == "CURRENT PROPOSALS":
                 callsign_to_print = callsign_to_print[6:].strip()
-                current_callsign_list = self.data_collector.get_callsign_list()
+                current_callsign_list_dictionary = self.data_collector.get_callsign_list()
+                current_callsign_list = list()
+                for callsign in current_callsign_list_dictionary:  current_callsign_list.append(callsign)
+                current_callsign_list.sort()
                 current_callsigns = ""
-                for callsign in current_callsign_list: current_callsigns = f"{current_callsigns}, {callsign} (P{current_callsign_list[callsign]['flight_plan']['deptime']})"
+                for callsign in current_callsign_list: current_callsigns = f"{current_callsigns}, {callsign} (P{current_callsign_list_dictionary[callsign]['flight_plan']['deptime']})"
                 if len(current_callsigns) > 2: current_callsigns = current_callsigns[2:]
                 else: current_callsigns = "THERE ARE NO CURRENT PROPOSALS."
                 self.printer.print_gi_messages(current_callsigns)
@@ -99,7 +102,7 @@ class CallsignRequester:
                         else:
                             self.printer.print_gi_messages(dumped_flight_string)
                             dumped_flight_string = str(aircraft_callsign)
-                    if len(dumped_flight_string)+26 <= 320: 
+                    if len(dumped_flight_string)+26 >= 320: 
                         self.printer.print_gi_messages(dumped_flight_string[-26:])
                         time.sleep(1)
                         self.printer.print_gi_messages(f'{dumped_flight_string[:-26]}... SETTING LIST TO EMPTY.')

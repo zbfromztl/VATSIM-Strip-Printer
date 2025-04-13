@@ -79,6 +79,7 @@ class DataCollector:
 
                     self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
+                    if self.printer.printer: time.sleep(3) #So they don't all print out at once... should give you time to take the strip out the printer so the text doesn't slide...
             # auto_update cached callsigns
             file = open(self.cached_departures_file_path, 'wb')
             pickle.dump(self.printed_callsigns, file)

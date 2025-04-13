@@ -303,6 +303,7 @@ class Printer:
         route = route.replace("+", "")
         return route
     # TODO Get rid of N0454F360 Shit
+
     def format_remarks(self, remark_string:str, length:int=25):
         # remove voice type
         if "/V/" in remark_string:
@@ -325,26 +326,21 @@ class Printer:
         else:
             string_list = remark_string
 
-        if isinstance(string_list,str): #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
-            pass
+        if isinstance(string_list,str): pass #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
             # ret_string = string_list[0:length-1]
         else:
-            if len(string_list) > 1:
-                ret_string = f"{string_list[1][:length]}"
-            else:
-                ret_string = string_list[0:length]
+            if len(string_list) > 1: ret_string = f"{string_list[1][:length]}"
+            else: ret_string = string_list[0:length]
             
 
         # If the remaining remarks string has more than 22 (or requested number of...) characters, cut it down to 22/requested number & append a '***' to the end
         try:
             if ret_string is not None:
-                if(len(ret_string)) < length:
-                    return f"{self.remark_prefix}{ret_string}" 
+                if(len(ret_string)) < length: return f"{self.remark_prefix}{ret_string}" 
                 else:
                     return f"{self.remark_prefix}{ret_string[0:length-4]}***" #supposedly the euro symbol is mapped to the clear weather symbol...
                     #TODO: Fix logic for "shortening" detection (so that the text doesn't write on itself...)
-        except:
-            return ""
+        except: return ""
         
     def format_flightplan(self, flightplan:str, departure:str, flightrules:str):
         # If the flight plan is NOT IFR or DVFR, do not print the route.
@@ -404,7 +400,7 @@ class Printer:
                 return  f"+{departure} {build_string}+"
             elif i >= 3:
                 build_string = build_string.strip()
-                return f"{departure} {build_string}. / ."
+                return f"{departure} {build_string} . /."
             
             build_string = f"{build_string}{flightplan_list[i]} "
         build_string = f'{departure} {build_string}'
