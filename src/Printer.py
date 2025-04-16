@@ -207,7 +207,7 @@ class Printer:
             is_in_filter = False
             if len(self.filters) > 0: #Are we filtering stuff?
                 line_check = []
-                for waypoint in line1.split(): line_check.append(waypoint[:5])
+                for waypoint in arrivalroute: line_check.append(waypoint[:5])
                 for filtah in self.filters: #if we are filtering for stuff, check each filter item against stuff in the route. filtah used instead of the Python Class filter
                     if filtah in line_check: is_in_filter = True  #if the filter item is not in the route, break the loop so the flight plan doesn't print.
             else: is_in_filter = True
@@ -223,6 +223,7 @@ class Printer:
             airfields = str.replace(str.replace(str.replace(str(list.copy(control_area['airports'])),"'",""),"[",""),"]","")
             print(f"Could not find {requested_callsign} in {airfields} proposals. Nice going, dumbass.")
     
+
     # TODO Redo formatting for positions
     def print_strip(self, pos1:str='', pos2:str='', pos2A:str='', pos3:str='', pos4A:str='', pos4B:str = '', 
                     pos5:str='', pos6:str='', pos7:str='', pos8:str='', pos8A:str='', pos8B='', pos9:str='', pos9A:str='', pos9B:str='', pos9C:str='', pos9D:str = ''):
