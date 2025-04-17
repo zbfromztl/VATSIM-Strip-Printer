@@ -193,7 +193,7 @@ class Printer:
             # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
             eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], destination)
 
-            #Fix formatting of coordiantion fix/STAR
+            #Fix formatting of coordination fix/STAR
             try:
                 if len(star) < 5: star = f'{star}    '
                 if len(prevfix) < 5: prevfix = f'{prevfix}    '
