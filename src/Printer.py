@@ -307,25 +307,18 @@ class Printer:
 
     def format_remarks(self, remark_string:str, length:int=25):
         # remove voice type
-        if "/V/" in remark_string:
-            remark_string = remark_string.replace("/V/", "")
-        if "/T/" in remark_string:
-            remark_string = remark_string.replace("/T/", "")
-        if "/R/" in remark_string:
-            remark_string = remark_string.replace("/R/", "")
+        if "/V/" in remark_string: remark_string = remark_string.replace("/V/", "")
+        if "/T/" in remark_string: remark_string = remark_string.replace("/T/", "")
+        if "/R/" in remark_string: remark_string = remark_string.replace("/R/", "")
 
         # remove double spaces
-        if "  " in remark_string:
-            ret_string = remark_string.replace("  ", " ")
+        if "  " in remark_string: ret_string = remark_string.replace("  ", " ")
         # no text in remarks section(after deletion of voice type)
-        if remark_string.strip() == "":
-            return ""
+        if remark_string.strip() == "": return ""
         
         # Split remark text into two sections and takes the data in the second half. Essentially deletes PBN data from the text, except if theres no RMK/. If no RMK/ exits, it will just use the first 22 characters
-        if "RMK/" in remark_string:
-            string_list = remark_string.split("RMK/")
-        else:
-            string_list = remark_string
+        if "RMK/" in remark_string: string_list = remark_string.split("RMK/")
+        else: string_list = remark_string
 
         if isinstance(string_list,str): pass #Did we find "RMK/" in the remarks section? If we did NOT, this will ensure that the remarks STILL get shown. (Fixes weird formatting bug)
             # ret_string = string_list[0:length-1]
@@ -374,24 +367,20 @@ class Printer:
         try:
             if flightplan_list[0] == departure:
                 flightplan_list.pop(0)
-        except:
-            flightplan_list = []
+        except: flightplan_list = []
 
         #If the flight plan has the departure runway or ATL2 in there, get rid of it.
         try:
             if flightplan_list[0].startswith("RW"): flightplan_list.pop(0)
             if flightplan_list[0][0].isnumeric() and len(flightplan_list[0]) <= 3: flightplan_list.pop(0)
             if flightplan_list[0].startswith(departure[-3:]) and len(flightplan_list[0]) <= 4: flightplan_list.pop(0)
-        except:
-            pass
+        except: pass
 
         # removes simbrief crap at start of flightplan
         i=0
         while(i < len(flightplan_list)):
-            if len(flightplan_list[i]) > 6:
-                flightplan_list.pop(i)
-            else:
-                i +=1
+            if len(flightplan_list[i]) > 6: flightplan_list.pop(i)
+            else: i +=1
         
         # Truncates flightplan route to first 3 waypoints. routes longer than 3 waypoints are represented with a . / . at the end. If amended put . / . outside '+' symbols
         build_string = ""
@@ -435,19 +424,14 @@ class Printer:
     def format_cruise_altitude(self, altitude:str):
         formatted_altitude = altitude.upper()
         if formatted_altitude[:3] == "VFR": #Fix VFR altitude in flight strip for CRC(?)
-            if len(formatted_altitude) > 7:
-                formatted_altitude = formatted_altitude[:7]
-            elif len(formatted_altitude) <= 3:
-                formatted_altitude = f"{formatted_altitude}    "
+            if   len(formatted_altitude) > 7:  formatted_altitude = formatted_altitude[:7]
+            elif len(formatted_altitude) <= 3: formatted_altitude = f"{formatted_altitude}    "
         else:
             formatted_altitude = formatted_altitude.replace("FL", "")
             formatted_altitude = altitude[:-2]
-            if len(formatted_altitude) < 2:
-                formatted_altitude = f"00{formatted_altitude}    "
-            elif len(formatted_altitude) < 3:
-                formatted_altitude = f"0{formatted_altitude}    "
-            elif len(formatted_altitude) == 3:
-                formatted_altitude = f"{formatted_altitude}    "
+            if   len(formatted_altitude) < 2:  formatted_altitude = f"00{formatted_altitude}    "
+            elif len(formatted_altitude) < 3:  formatted_altitude = f"0{formatted_altitude}    "
+            elif len(formatted_altitude) == 3: formatted_altitude = f"{formatted_altitude}    "
         return formatted_altitude
     
     def match_ATL_exit_fix(self, flightplan):

@@ -34,7 +34,7 @@ class Main():
 
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
-        allowNetwork = False
+        allowNetwork = True
         allowPrefiles = True
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         unlimited_recall = False #should it store every callsign ever printed or not?
@@ -93,12 +93,10 @@ class Main():
         # ---------Choose Facilty---------------
         print("Please select your control facility. Your choices are:")
         facilities = printer_positions["facilities"]
-        for i in facilities:
-            print(i)
+        for i in facilities: print(i)
         user_facility = input()
         user_facility = str(user_facility.upper())
-        try:
-            user_facility = facilities[user_facility]
+        try: user_facility = facilities[user_facility]
         except:
             printerfacilitydefault = tuple((facilities.items()))
             print(f"I'm sorry, I can't seem to find {user_facility}. Setting your facility to{str(printerfacilitydefault[0][0])}, the default facility.")
@@ -109,12 +107,9 @@ class Main():
         if len(user_facility) > 1:
             print("Please select your control position.")
             print("Your choices include:")
-            for i in user_facility:
-                print(i)
-            user_position = input()
-            user_position = user_position.upper()
-            try:
-                control_area = user_facility[user_position]
+            for i in user_facility: print(i)
+            user_position = input().upper()
+            try: control_area = user_facility[user_position]
             except:
                 printerpositiondefault = tuple((user_facility.items()))
                 print(f"I'm sorry, I can't seem to find {user_position}. Setting your position to {str(printerpositiondefault[0][0])}, the default position.")
@@ -135,8 +130,7 @@ class Main():
                 do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
                 do_we_network = bool(int(do_we_network))
                 break
-            except ValueError:
-                print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
+            except ValueError: print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
         # -----Print all Departures-----
         while(True):
@@ -158,18 +152,16 @@ class Main():
                         # pickles an empty list into the cached file
                         clear_callsigns = ClearStoredCallsigns(cached_callsign_path)
                 break
-            except ValueError:
-                print("Please input either a 1 or 0")
+            except ValueError: print("Please input either a 1 or 0")
 
         # --- AllowPrefiles ---
         handle_prefiles = False
         if allowPrefiles:
-            if control_area['stripType'] == "departure" or control_area['stripType'] == "both": #Only ask if this position is eligble
+            if (control_area['stripType'] == "departure" or control_area['stripType'] == "both") and control_area['auto_Print_Strips']: #Only ask if this position is eligble
                 try:
                     response = input("Do you want to print pre-filed flight plans? Reply with a '1' for yes, '0' for no: ")
                     handle_prefiles = bool(int(response))
-                except ValueError:
-                    print("Please input either 1 or 0")
+                except ValueError: print("Please input either 1 or 0")
 
         # load callsigns so that they are not printed
         # if not print_cached_departures:
@@ -217,8 +209,7 @@ class Main():
         try:
             print("Would you like Hazardous Weather Advisories?")
             enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
-        except ValueError:
-            print('Reply "1" for yes, and "0" for no: ')
+        except ValueError: print('Reply "1" for yes, and "0" for no: ')
 
         #start printing strips while customer decides whether or not they want to sync the data.
         automated_strip_printing.start()
