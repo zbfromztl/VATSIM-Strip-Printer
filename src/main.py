@@ -34,7 +34,7 @@ class Main():
 
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
-        allowNetwork = True
+        allowNetwork = False
         allowPrefiles = True
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         unlimited_recall = False #should it store every callsign ever printed or not?

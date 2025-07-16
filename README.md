@@ -6,7 +6,7 @@ Version: Python 3.11.3
   * Technical Advisor: [Zack B)](https://github.com/zbfromztl)
 
 # In Progress:
- - [ ] Electronic Flight Strip Transfer System (EFSTS) / Networking
+ - [X] Electronic Flight Strip Transfer System (EFSTS) / Networking
  - [ ] Print all the memory aid things
  - [ ] Add more comments and documentation
 
@@ -53,6 +53,9 @@ python main.py
 so you may want to save those before running it. Additionally, you need to define
 the font of the flight strips to be used in main.py. You can send open communication
 with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all available fonts. </sub>
+
+<sub>NOTE: If running this on Linux... you may need to go into Printer.py and add 
+a # in-front of self.zebra.setqueue(Q[0]) to preclude a ListIndex error</sub>
 
 # Strip Alignment:
  * Strips require manual alignment prior to first print.
