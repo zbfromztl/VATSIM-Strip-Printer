@@ -53,7 +53,7 @@ class DataCollector:
                 if '+' in current_pilot_route:
                     current_pilot_route = current_pilot_route.replace('+', '')
 
-                if new_pilot_route != current_pilot_route:
+                if new_pilot_route != current_pilot_route and self.control_area['auto_Print_Strips']:
                     # pilot has received a reroute
                     self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
                     self.printer.print_callsign_data(self.callsign_list[pilot_callsign], pilot_callsign, self.control_area, strip_type)
