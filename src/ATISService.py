@@ -111,7 +111,7 @@ class ATISInfoUhhh:
             while len(atis_changes) > 320:
                 self.printer.print_gi_messages(atis_changes[:320])
                 atis_changes = atis_changes[320:]
-                time.sleep(3)
+                # time.sleep(3)
             else: self.printer.print_gi_messages(atis_changes)
 
     def start_refreshing(self, delay:int = 60):
