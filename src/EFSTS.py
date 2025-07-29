@@ -38,17 +38,23 @@ class Scanner:
         self.maxReportedDelay = 0
         self.network = network
         self.do_network = do_network
+        self.last_scan = {'CID':0,'Time':0}
 
     def scan(self, callsign):
+        process_scan = True
         position = self.controlType.upper()
-        if position == "GC":
-            self.start_clock(callsign)
-        elif position == "LC":
-            visualFlag = False
-            if callsign[0].upper() == "V":
-                visualFlag = True
-                callsign = callsign[1:]
-            self.send_departure(callsign, visualFlag)
+        last_scan, last_time = self.last_scan['CID'], self.last_scan['Time']
+        if callsign == last_scan and last_time + 1.5 >= time.time(): process_scan = False
+        if process_scan:
+            self.last_scan['CID'], self.last_scan['Time'] = callsign, time.time()
+            print(f'Scan Processed: {process_scan} X {self.last_scan}')
+            if position == "GC": self.start_clock(callsign)
+            elif position == "LC":
+                visualFlag = False
+                if callsign[0].upper() == "V":
+                    visualFlag = True
+                    callsign = callsign[1:]
+                self.send_departure(callsign, visualFlag)
 
     def start_clock(self, callsign):
         visualFlag = False

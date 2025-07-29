@@ -10,6 +10,7 @@ from HazardousWX import WXRadio
 from EFSTS import Scanner
 from armt import AirspaceManagement
 from network import Network
+from ATISService import ATISInfoUhhh
 
 __author__ = "Simon Heck"
 
@@ -19,10 +20,26 @@ class Main():
         airports_path = "./data/airports.json"
         printerpositions_path = "./data/positions.json"
         waypoint_database = "./data/waypoint_database.json"
+
+                                  
+####       ,ad8888ba,    ,ad8888ba,    888b      88  88888888888  88    ,ad8888ba,   88        88  88888888ba          db    888888888888  88    ,ad8888ba,    888b      88  
+####      d8"'    `"8b  d8"'    `"8b   8888b     88  88           88   d8"'    `"8b  88        88  88      "8b        d88b        88       88   d8"'    `"8b   8888b     88  
+####     d8'           d8'        `8b  88 `8b    88  88           88  d8'            88        88  88      ,8P       d8'`8b       88       88  d8'        `8b  88 `8b    88  
+####     88            88          88  88  `8b   88  88aaaaa      88  88             88        88  88aaaaaa8P'      d8'  `8b      88       88  88          88  88  `8b   88  
+####     88            88          88  88   `8b  88  88"""""      88  88      88888  88        88  88""""88'       d8YaaaaY8b     88       88  88          88  88   `8b  88  
+####     Y8,           Y8,        ,8P  88    `8b 88  88           88  Y8,        88  88        88  88    `8b      d8""""""""8b    88       88  Y8,        ,8P  88    `8b 88  
+####      Y8a.    .a8P  Y8a.    .a8P   88     `8888  88           88   Y8a.    .a88  Y8a.    .a8P  88     `8b    d8'        `8b   88       88   Y8a.    .a8P   88     `8888  
+####       `"Y8888Y"'    `"Y8888Y"'    88      `888  88           88    `"Y88888P"    `"Y8888Y"'   88      `8b  d8'          `8b  88       88    `"Y8888Y"'    88      `888                                                                                                                                                        
+
+
         # font = "FLIGHTSTRIPPRINT.TTF"
         font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
         allowNetwork = False
         allowPrefiles = True
+        recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
+        unlimited_recall = False #should it store every callsign ever printed or not?
+        doATISTracking = False
+
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
         sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
@@ -76,12 +93,10 @@ class Main():
         # ---------Choose Facilty---------------
         print("Please select your control facility. Your choices are:")
         facilities = printer_positions["facilities"]
-        for i in facilities:
-            print(i)
+        for i in facilities: print(i)
         user_facility = input()
         user_facility = str(user_facility.upper())
-        try:
-            user_facility = facilities[user_facility]
+        try: user_facility = facilities[user_facility]
         except:
             printerfacilitydefault = tuple((facilities.items()))
             print(f"I'm sorry, I can't seem to find {user_facility}. Setting your facility to{str(printerfacilitydefault[0][0])}, the default facility.")
@@ -92,12 +107,9 @@ class Main():
         if len(user_facility) > 1:
             print("Please select your control position.")
             print("Your choices include:")
-            for i in user_facility:
-                print(i)
-            user_position = input()
-            user_position = user_position.upper()
-            try:
-                control_area = user_facility[user_position]
+            for i in user_facility: print(i)
+            user_position = input().upper()
+            try: control_area = user_facility[user_position]
             except:
                 printerpositiondefault = tuple((user_facility.items()))
                 print(f"I'm sorry, I can't seem to find {user_position}. Setting your position to {str(printerpositiondefault[0][0])}, the default position.")
@@ -118,8 +130,7 @@ class Main():
                 do_we_network = input("Is this program being utilized in conjunction with other users? (Activate online mode?) Reply with a '1' for yes, or '0' for no: ")
                 do_we_network = bool(int(do_we_network))
                 break
-            except ValueError:
-                print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
+            except ValueError: print("Please enter a 1 or 0. Dunno if I can make the instructions any more simple. Thanks...")
 
         # -----Print all Departures-----
         while(True):
@@ -141,30 +152,29 @@ class Main():
                         # pickles an empty list into the cached file
                         clear_callsigns = ClearStoredCallsigns(cached_callsign_path)
                 break
-            except ValueError:
-                print("Please input either a 1 or 0")
+            except ValueError: print("Please input either a 1 or 0")
 
         # --- AllowPrefiles ---
         handle_prefiles = False
         if allowPrefiles:
-            if control_area['stripType'] == "departure" or control_area['stripType'] == "both": #Only ask if this position is eligble
+            if (control_area['stripType'] == "departure" or control_area['stripType'] == "both") and control_area['auto_Print_Strips']: #Only ask if this position is eligble
                 try:
                     response = input("Do you want to print pre-filed flight plans? Reply with a '1' for yes, '0' for no: ")
                     handle_prefiles = bool(int(response))
-                except ValueError:
-                    print("Please input either 1 or 0")
+                except ValueError: print("Please input either 1 or 0")
 
         # load callsigns so that they are not printed
         # if not print_cached_departures:
         printed_callsigns = current_callsigns_cached
         
-        printer = Printer(acft_dict, do_we_print, waypoint_db, font) 
+        printer = Printer(acft_dict, do_we_print, waypoint_db, font, recall_limit, unlimited_recall)
         data_collector = DataCollector(handle_prefiles, json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
         server_manager = Network(user_position, control_area, printer, data_collector)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
         wx_refresh = WXRadio(control_area, printer, airports, sigmetJSON, cwasJSON)
+        ATISServer = ATISInfoUhhh(control_area, printer, data_collector, json_refresh, airports)
         airspacemanagement = AirspaceManagement(control_area, data_collector)
         
         #Determine if we need to run the server or not.
@@ -181,8 +191,9 @@ class Main():
         JSON_timer = threading.Thread(target=json_refresh.start_refreshing)
         # Thread3: automatically prints new flight strips when callsign list updated
         automated_strip_printing = threading.Thread(target=data_collector.scan_for_new_aircraft_automatic)
-        # Thread4: automatically print SIGMETs/AIRMETs every once in a while.
+        # Thread4: automatically print SIGMETs/AIRMETs every once in a while & handle ATIS tracking.
         wxradio = threading.Thread(target=wx_refresh.start_refreshing)
+        ATIStracker = threading.Thread(target=ATISServer.start_refreshing)
         # Thread5: Keep track of departure delays. Manage strip scanners.
         scans = threading.Thread(target=efsts.opsNet)
         airspace = threading.Thread(target=airspacemanagement.getSplit)
@@ -198,8 +209,7 @@ class Main():
         try:
             print("Would you like Hazardous Weather Advisories?")
             enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
-        except ValueError:
-            print('Reply "1" for yes, and "0" for no: ')
+        except ValueError: print('Reply "1" for yes, and "0" for no: ')
 
         #start printing strips while customer decides whether or not they want to sync the data.
         automated_strip_printing.start()
@@ -207,17 +217,15 @@ class Main():
         # start other threads
         JSON_timer.start()
         type_of_position = control_area["type"].upper()
-        if type_of_position != "TMU":
-            user_input.start()
-        else:
-            airspace.start()
+        if type_of_position != "TMU": user_input.start()
+        else: airspace.start()
 
-        if enablewxradio:
-            wxradio.start()
+        if enablewxradio: wxradio.start()
 
-        if type_of_position == "GC" or type_of_position == "LC":
-            scans.start()
+        if type_of_position == "GC" or type_of_position == "LC": scans.start()
         
+        if doATISTracking: ATIStracker.start()
+
         # Thread7 : Join server
         go_online = threading.Thread(target=server_manager.use_server)
         if do_we_network and not is_server: go_online.start() # If we *are* the server... it will error... lame.

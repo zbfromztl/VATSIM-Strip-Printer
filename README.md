@@ -6,7 +6,7 @@ Version: Python 3.11.3
   * Technical Advisor: [Zack B)](https://github.com/zbfromztl)
 
 # In Progress:
- - [ ] Electronic Flight Strip Transfer System (EFSTS) / Networking
+ - [X] Electronic Flight Strip Transfer System (EFSTS) / Networking
  - [ ] Print all the memory aid things
  - [ ] Add more comments and documentation
 
@@ -27,6 +27,8 @@ Version: Python 3.11.3
   * Log airport delays & limited logic to determine cause.
   * Data refresh syncs with VATSIM data refresh cycle
   * GI command to print GI stuff.
+  * The system will STOP printing strips on callsigns that are habitual reloggers. 
+  * ATIS tracking system that notifies when an ATIS for an airport within our Area of Jurisdiction is updated or disconnected.
   * Others
 
 # Hardware:
@@ -52,6 +54,9 @@ so you may want to save those before running it. Additionally, you need to defin
 the font of the flight strips to be used in main.py. You can send open communication
 with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all available fonts. </sub>
 
+<sub>NOTE: If running this on Linux... you may need to go into Printer.py and add 
+a # in-front of self.zebra.setqueue(Q[0]) to preclude a ListIndex error</sub>
+
 # Strip Alignment:
  * Strips require manual alignment prior to first print.
  1. Launch program. Type "Align" after selecting positions.
@@ -66,9 +71,16 @@ with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all availab
  * Times - Prints the current taxi times & associated callsigns.
  * Purge - Clears queue count for delay reporting
  * DROP (Callsign) - Removes cid from queue counter.
+ * Recall - List all strips printed. Use recall# to print a previously printed GI message.
  * Align - Prints blank strip with singular line. Align line with mouth of printer to achieve serenity.
  * FRC (ACID) or SR (ACID) - Prints strip with all flight plan info.
  * GI (message) - Prints a strip of inputted text.
+ * printproposals - Prints a strip of all flight plans in the system. Useful if you lose track of the dropped flight plans.
+ * filter (item,item2,item3) - Add/Remove listed waypoints to the filter. Useful if you don't want every flight strip (for... a split position...)
+ * dumped - Displays aircraft that have timed out of the system to assist with dead strip removal. This will also clear the list of timed out flight plans.
+ * printer - Toggles printing physical flight strips.
+ * ban - add/remove callsign from banned callsigns list
+ * PIREP - Load pirep form
 
 # ARMT commands (ATL only)
  * countproposals - Counts all the aircraft on the ground and organizes it based on filed departure gate.

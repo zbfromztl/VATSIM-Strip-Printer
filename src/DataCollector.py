@@ -8,6 +8,9 @@ __author__ = "Simon Heck", "KK"
 class DataCollector:
     def __init__(self, handle_prefiles, json_url:str, control_area:str, printer:Printer, cached_printed_departures:list, cached_departures_file_path:str, positions: dict, airports:dict) -> None:
         self.callsign_list = {}
+        self.banned_callsigns = set()
+        self.dumped_flights = set()
+        self.auto_ban_manager = {}
         self.json_url = json_url
         self.control_area = control_area
         self.printer = printer
@@ -18,6 +21,7 @@ class DataCollector:
         self.fence = positions['fence_data']
         self.airports = airports
         self.handle_prefiles = handle_prefiles
+        self.auto_ban_limit = 3
 
     def check_for_updates(self):
         self.update_json(self.json_url)
@@ -30,22 +34,32 @@ class DataCollector:
         return self.callsign_list
     
     def add_callsign_to_dep_list(self, pilot_callsign:str, new_pilot_data_associated_with_callsign:dict, strip_type):
-        new_pilot_route:str = new_pilot_data_associated_with_callsign['flight_plan']['route']
-        if '+' in new_pilot_route:
-            new_pilot_route = new_pilot_route.replace('+', '')
-        
-        if pilot_callsign in self.callsign_list:
-            current_pilot_route:str = self.callsign_list[pilot_callsign]['flight_plan']['route']
-            if '+' in current_pilot_route:
-                current_pilot_route = current_pilot_route.replace('+', '')
+        if pilot_callsign not in self.banned_callsigns:
+            if pilot_callsign in self.dumped_flights: 
+                self.dumped_flights.discard(pilot_callsign)
+                if pilot_callsign in self.auto_ban_manager:
+                    if self.auto_ban_manager[pilot_callsign] >= self.auto_ban_limit:
+                        self.banned_callsigns.add(pilot_callsign)
+                        print(f'{time.strftime("%H%M",time.gmtime())}: Adding {pilot_callsign} to banned callsigns... (maximum relog limit: {self.auto_ban_limit})')
+                    else: self.auto_ban_manager[pilot_callsign] = self.auto_ban_manager[pilot_callsign]+1
+                else: self.auto_ban_manager.update({pilot_callsign:1})
+            new_pilot_route:str = new_pilot_data_associated_with_callsign['flight_plan']['route']
+            if pilot_callsign in self.dumped_flights: self.dumped_flights.remove(pilot_callsign)
+            if '+' in new_pilot_route:
+                new_pilot_route = new_pilot_route.replace('+', '')
+            
+            if pilot_callsign in self.callsign_list:
+                current_pilot_route:str = self.callsign_list[pilot_callsign]['flight_plan']['route']
+                if '+' in current_pilot_route:
+                    current_pilot_route = current_pilot_route.replace('+', '')
 
-            if new_pilot_route != current_pilot_route:
-                # pilot has received a reroute
+                if new_pilot_route != current_pilot_route and self.control_area['auto_Print_Strips']:
+                    # pilot has received a reroute
+                    self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
+                    self.printer.print_callsign_data(self.callsign_list[pilot_callsign], pilot_callsign, self.control_area, strip_type)
+            else:
+                # new_pilot_data_associated_with_callsign['flight_plan']['route'] = new_pilot_route
                 self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
-                self.printer.print_callsign_data(self.callsign_list[pilot_callsign], pilot_callsign, self.control_area, strip_type)
-        else:
-            # new_pilot_data_associated_with_callsign['flight_plan']['route'] = new_pilot_route
-            self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
 
     def scan_for_new_aircraft_automatic(self):
         while(self.control_area['auto_Print_Strips']): #This used to be while(True)
@@ -65,6 +79,7 @@ class DataCollector:
 
                     self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
+                    # if self.printer.printer: time.sleep(3) #So they don't all print out at once... should give you time to take the strip out the printer so the text doesn't slide...
             # auto_update cached callsigns
             file = open(self.cached_departures_file_path, 'wb')
             pickle.dump(self.printed_callsigns, file)
@@ -91,6 +106,8 @@ class DataCollector:
 
         # airplane lat_long position
         airplane_lat, airplane_long = airplane_lat_long
+
+
     
         if (airplane_lat < northern_latitude and airplane_lat > southern_latitude) and (airplane_long > western_longitude and airplane_long < eastern_longitude):
             return True
@@ -132,10 +149,12 @@ class DataCollector:
                         # Save callsign of pilot and associated JSON Info
                         # to access, use: self.callsign_list.get(**callsign**)
                         # that will return the portion of the JSON with all of the pilot's info from when the system added them(flightplan, CID, etc.)
-                        self.add_callsign_to_dep_list(pilot_callsign, current_pilot, lookfor)
+                        if lookfor == 'arrival' and current_pilot['groundspeed'] == 0: self.remove_callsign_from_lists(pilot_callsign) #This *should* remove arrival strips that have landed...
+                        else: 
+                            self.add_callsign_to_dep_list(pilot_callsign, current_pilot, lookfor)
 
                     elif self.requires_removal(pilot_callsign, pilot_departure_airport, self.control_area, lat_long_tuple):
-                        self.remove_callsign_from_lists(pilot_callsign)
+                        if pilot_callsign not in self.banned_callsigns: self.remove_callsign_from_lists(pilot_callsign)
 
             except TypeError as e1:
                 pass        
@@ -175,6 +194,7 @@ class DataCollector:
                 removed_route = removed_route.replace(f"{callsign_departure} ","")
                 self.remove_callsign_from_lists(user)
                 print(f"{str(time.gmtime().tm_hour).zfill(2)}{str(time.gmtime().tm_min).zfill(2)}Z: FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
+                self.dumped_flights.add(user)
             except Exception as e2:
                 print(f"Exception removing flight plan: {e2}")
                 continue
@@ -183,18 +203,15 @@ class DataCollector:
     def requires_removal(self, callsign, filed_dep, airports_list, lat_long): #This is to process when aircraft leave the area of jurisdiction who have previously had strips printed out.
         result = False
         if filed_dep in tuple(self.control_area['airports']) and callsign in self.callsign_list:
-            if self.in_geographical_region_wip(airports_list, filed_dep, lat_long):
-                pass
-            else:
-                result = True
+            if self.in_geographical_region_wip(airports_list, filed_dep, lat_long): pass
+            else: result = True
         return result
         
 
     def remove_callsign_from_lists(self, callsign_to_remove):
         try:
-            self.callsign_list.pop(callsign_to_remove)
-            if callsign_to_remove in self.printed_callsigns:
-                self.printed_callsigns.remove(callsign_to_remove)
+            if callsign_to_remove in self.callsign_list: self.callsign_list.pop(callsign_to_remove) #The "if" statement here is so that it doesn't error if the prog is launched while 
+            if callsign_to_remove in self.printed_callsigns: self.printed_callsigns.remove(callsign_to_remove)
         except:
             print(f'Error removing {callsign_to_remove}: not found in stored lists.')
 
@@ -204,11 +221,13 @@ class DataCollector:
 
     def get_removed_route(self, flightplan:str, departure:str, flightrules:str):
         flightplan = str(flightplan)
-        flightplan = flightplan.replace("(","")
-        flightplan = flightplan.replace(")","")
-        flightplan = flightplan.replace("'","")
-        flightplan = flightplan.replace("."," ")
-        flightplan = flightplan.replace("  "," ")
+        undesired_characters = ["(",")","'",".","  ","/"]
+        for qualifier in undesired_characters: flightplan = flightplan.replace(qualifier,"")
+        # flightplan = flightplan.replace("(","")
+        # flightplan = flightplan.replace(")","")
+        # flightplan = flightplan.replace("'","")
+        # flightplan = flightplan.replace("."," ")
+        # flightplan = flightplan.replace("  "," ")
         try: 
             if flightplan.isalnum: removed_route = self.printer.format_flightplan(flightplan, departure, flightrules)
             else: removed_route = "ERROR PARSING ROUTE"
