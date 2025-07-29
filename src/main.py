@@ -39,6 +39,7 @@ class Main():
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         unlimited_recall = False #should it store every callsign ever printed or not?
         doATISTracking = False
+        scanner_only_mode = False
 
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
@@ -136,7 +137,7 @@ class Main():
         while(True):
             try:
                 do_we_print = False
-                if control_area['auto_Print_Strips'] or do_we_network: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
+                if (control_area['auto_Print_Strips'] or do_we_network) and scanner_only_mode == False: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
                     do_we_print = bool(int(input("Do you want to print paper flight progress strips? Reply with a '1' for yes, or '0' for no: ")))
                     response = input("Do you want to print eligble aircraft already present in the area of jurisdiction? Reply with a '1' for yes, '0' for no: ")
                     print_all_departures = bool(int(response))
@@ -144,7 +145,7 @@ class Main():
                     #     response = input(f"This will possibly print up to {len(current_callsigns_cached)} strips. Reply '1' for yes, '0' for no: ")
                     #     print_all_departures = bool(int(response))
                     
-                if(print_all_departures):
+                if(print_all_departures) and scanner_only_mode == False:
                     response = input(f"Do you want to clear the {len(current_callsigns_cached)} cached strips? Reply '1' for yes, '0' for no: ")
                     current_callsigns_cached = []
                     clear_cache = bool(int(response))
@@ -157,7 +158,7 @@ class Main():
         # --- AllowPrefiles ---
         handle_prefiles = False
         if allowPrefiles:
-            if (control_area['stripType'] == "departure" or control_area['stripType'] == "both") and control_area['auto_Print_Strips']: #Only ask if this position is eligble
+            if (control_area['stripType'] == "departure" or control_area['stripType'] == "both") and control_area['auto_Print_Strips'] and scanner_only_mode == False: #Only ask if this position is eligble
                 try:
                     response = input("Do you want to print pre-filed flight plans? Reply with a '1' for yes, '0' for no: ")
                     handle_prefiles = bool(int(response))
@@ -205,17 +206,18 @@ class Main():
         # server_manager.use_server()
         
 
+        enablewxradio = False
+        if scanner_only_mode == False:
+            try:
+                    print("Would you like Hazardous Weather Advisories?")
+                    enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
+            except ValueError: print('Reply "1" for yes, and "0" for no: ')
 
-        try:
-            print("Would you like Hazardous Weather Advisories?")
-            enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
-        except ValueError: print('Reply "1" for yes, and "0" for no: ')
+            #start printing strips while customer decides whether or not they want to sync the data.
+            automated_strip_printing.start()
 
-        #start printing strips while customer decides whether or not they want to sync the data.
-        automated_strip_printing.start()
-
-        # start other threads
-        JSON_timer.start()
+            # start other threads
+            JSON_timer.start()
         type_of_position = control_area["type"].upper()
         if type_of_position != "TMU": user_input.start()
         else: airspace.start()

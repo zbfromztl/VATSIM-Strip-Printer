@@ -288,7 +288,7 @@ class Printer:
             message = message[max_message_length:]
             # time.sleep(1)
 
-    def print_gi_message(self, message): #Name change to allow for print_gi_messages (original) to process shortening without disrupting other places in program...
+    def print_gi_message(self, message, asb='55'): #Name change to allow for print_gi_messages (original) to process shortening without disrupting other places in program...
         message = message.upper()
         self.recall_inator(message, "update", "gi")
         if self.printer: #Check to see if we want to print paper strips
@@ -305,26 +305,16 @@ class Printer:
                               ^XA
                               ^FB1600,4,3,L,25
                               ^FO10,10 
-                              ^ASB,55
+                              ^ASB,{asb}
                               ^FD{message}^FS 
                               ^XZ""")
         else:
             print(f"{message}")
         
     def print_memoryAids(self):
-        # if self.printer:
-            # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
-            #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDW/N HRSHL/RONII^FS^XZ""")
-            
-            # self.zebra.output(f"""^XA^MMT^PW203^LL1624^FS
-            #                       ^XA^FB1600,1,0,C,0^FO10,10^ASB,200^FDSTOP^FS^XZ""")
-        # else:
-        print("STOP")
-        print("\\\\\\ NO LUAW ///")
-        print("S/E SLAWW/FUTBL")
-        print("W/N SNUFY/MPASS")
-        print("S/E GRITZ/LIDAS")
-        print("W/N HRSHL/RONII")
+        mem_aids = {'STOP':["250,250"],"\\\ NO LUAW ///":["250,190"], "S/E SLAWW/FUTBL":["250,190"],"W/N SNUFY/MPASS":["250,190"],"S/E GRITZ/LIDAS":["250,190"],"W/N HRSHL/RONII":["250,190"]}
+        for memory_aid_item in mem_aids: self.print_gi_message(memory_aid_item,mem_aids[memory_aid_item])
+
 
     def remove_amendment_marking(self, route:str) -> str:
         route = route.replace("+", "")
@@ -515,13 +505,13 @@ class Printer:
     
         return f"{r1}{r2}{r3}"
 
-    def generate_random_id(self):
-        r1 = random.randint(0,9)
-        # Replace 2nd digit with B if blind
-        r2 = random.randint(0,9)
-        # /R/ /T/ replace with a T/R
-        r3 = random.randint(0,9)
-        return f"{r1}{r2}{r3}"
+    # def generate_random_id(self):
+    #     r1 = random.randint(0,9)
+    #     # Replace 2nd digit with B if blind
+    #     r2 = random.randint(0,9)
+    #     # /R/ /T/ replace with a T/R
+    #     r3 = random.randint(0,9)
+    #     return f"{r1}{r2}{r3}"
 
     def format_actype(self, aircraft_description:str):
         #Format that stuff & send it back
