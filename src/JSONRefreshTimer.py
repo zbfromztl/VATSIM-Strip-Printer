@@ -34,22 +34,17 @@ class JSONRefreshTimer:
         nextRefresh = jsonSeconds + 15
 
         #IDK how to do math so I did this instead
-        if nextRefresh > 45:
-            nextRefresh = nextRefresh - 45
+        if nextRefresh > 45: nextRefresh = nextRefresh - 45
 
         timeNow = time.gmtime().tm_sec
-        if timeNow > 45:
-            timeNow = timeNow - 45
+        if timeNow > 45: timeNow = timeNow - 45
         
         #Correct for weird stuff?
         timeToWait = nextRefresh - timeNow
-        while timeToWait < 0:
-            timeToWait = timeToWait + 15
+        while timeToWait < 0: timeToWait = timeToWait + 15
         
-        while timeToWait > 15:
-            timeToWait = timeToWait - 15
+        while timeToWait > 15: timeToWait = timeToWait - 15
 
         timeToWait = timeToWait + 1 # Add 1 second as a buffer incase of drift or whatever
-        if timeToWait == 16:
-            timeToWait = 0 #Literally means it doesn't need to refresh lol
+        if timeToWait == 16: timeToWait = 0 #Literally means it doesn't need to refresh lol
         return timeToWait

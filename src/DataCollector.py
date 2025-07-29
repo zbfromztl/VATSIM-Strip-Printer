@@ -36,7 +36,7 @@ class DataCollector:
     def add_callsign_to_dep_list(self, pilot_callsign:str, new_pilot_data_associated_with_callsign:dict, strip_type):
         if pilot_callsign not in self.banned_callsigns:
             if pilot_callsign in self.dumped_flights: 
-                self.dumped_flights.pop(pilot_callsign)
+                self.dumped_flights.discard(pilot_callsign)
                 if pilot_callsign in self.auto_ban_manager:
                     if self.auto_ban_manager[pilot_callsign] >= self.auto_ban_limit:
                         self.banned_callsigns.add(pilot_callsign)
@@ -53,7 +53,7 @@ class DataCollector:
                 if '+' in current_pilot_route:
                     current_pilot_route = current_pilot_route.replace('+', '')
 
-                if new_pilot_route != current_pilot_route:
+                if new_pilot_route != current_pilot_route and self.control_area['auto_Print_Strips']:
                     # pilot has received a reroute
                     self.callsign_list[pilot_callsign] = new_pilot_data_associated_with_callsign
                     self.printer.print_callsign_data(self.callsign_list[pilot_callsign], pilot_callsign, self.control_area, strip_type)
@@ -79,7 +79,7 @@ class DataCollector:
 
                     self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
-                    if self.printer.printer: time.sleep(3) #So they don't all print out at once... should give you time to take the strip out the printer so the text doesn't slide...
+                    # if self.printer.printer: time.sleep(3) #So they don't all print out at once... should give you time to take the strip out the printer so the text doesn't slide...
             # auto_update cached callsigns
             file = open(self.cached_departures_file_path, 'wb')
             pickle.dump(self.printed_callsigns, file)
