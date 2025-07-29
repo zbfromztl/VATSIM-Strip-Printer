@@ -10,14 +10,19 @@ __author__ = "Simon Heck", "Zack B"
 class Printer:
     def __init__(self, acrft_json, do_we_print, wp_db, font, recall_limit=10, unlimited_recall=False) -> None:
         #Pull RECAT database
-        self.printer = do_we_print
+        self.printer = False
+        self.scanner_mode = False
+        if do_we_print == "scanner": self.scanner_mode = True
+        if do_we_print == "scanner" or do_we_print == False: self.printer = False
+        else: self.printer = self.printer = do_we_print
         self.recat_db = acrft_json
         #Pull waypoint database
         self.waypoint_db = wp_db
         #Configure printer
         self.zebra = Zebra()
-        Q = self.zebra.getqueues()
-        self.zebra.setqueue(Q[0])
+        if self.scanner_mode == False: #This is to better integrate raspberry pi's because I am NOT installing the printer software on them (RaspberryOS annoying!!) and this causes errors.
+            Q = self.zebra.getqueues()
+            self.zebra.setqueue(Q[0])
         #Determine font to use
         self.print_directory = "E:"
         self.font = font
@@ -297,7 +302,7 @@ class Printer:
         else: print(f"{message}")
         
     def print_memoryAids(self):
-        mem_aids = {'STOP':["250,250"],"\\\ NO LUAW ///":["250,190"], "S/E SLAWW/FUTBL":["250,190"],"W/N SNUFY/MPASS":["250,190"],"S/E GRITZ/LIDAS":["250,190"],"W/N HRSHL/RONII":["250,190"]}
+        mem_aids = {'STOP':["250,250"],"\\\\\\ NO LUAW ///":["250,190"], "S/E SLAWW/FUTBL":["250,190"],"W/N SNUFY/MPASS":["250,190"],"S/E GRITZ/LIDAS":["250,190"],"W/N HRSHL/RONII":["250,190"]}
         for memory_aid_item in mem_aids: self.print_gi_message(memory_aid_item,mem_aids[memory_aid_item])
 
 

@@ -7,7 +7,7 @@ Version: Python 3.11.3
 
 # In Progress:
  - [X] Electronic Flight Strip Transfer System (EFSTS) / Networking
- - [ ] Print all the memory aid things
+ - [X] Print all the memory aid things
  - [ ] Add more comments and documentation
 
 # To do:
@@ -26,16 +26,18 @@ Version: Python 3.11.3
   * Print Hazardous Weather Information
   * Log airport delays & limited logic to determine cause.
   * Data refresh syncs with VATSIM data refresh cycle
-  * GI command to print GI stuff.
+  * GI command to print GI strips.
   * The system will STOP printing strips on callsigns that are habitual reloggers. 
   * ATIS tracking system that notifies when an ATIS for an airport within our Area of Jurisdiction is updated or disconnected.
-  * Others
+  * Another, secret option
 
 # Hardware:
   * [ZebraZD410 Printer](https://www.zebra.com/us/en/products/spec-sheets/printers/desktop/zd410.html)
   * [1x8 Flight Strips](https://bocathermal.txdesign.com/thermal-general-admission-ticket/details/boca-flight-strip-1-x-8/)
   * Computer with [python](https://www.python.org/downloads/) 3.1 or greater
-  * Install [Flight Progress Strip font](https://www.dropbox.com/s/lqtvsngjdjonngv/Flight-Strip-Printer.ttf?dl=0) to the Zebra ZD410 printer.
+  * Install [Flight Progress Strip font](https://www.dropbox.com/s/lqtvsngjdjonngv/Flight-Strip-Printer.ttf?dl=0) to the Zebra ZD410 printer. You may need [special software](https://www.dropbox.com/scl/fi/vrhoo7rrwbu3rjkubmaw2/ZDDownloader2.exe?rlkey=moaa8noieujkqmpe2wqpujkx1&st=rkjllvc7&dl=0) to actually upload it to the printer.
+  
+  * OPTIONALLY, You may be interested in physical flight strip holders ("bones") and bays. We've had good success with [hermieusupply](https://www.hermieusupply.com/en-EN/strip-holder.html)
 
 
 # How to Run:
@@ -57,6 +59,10 @@ with the printer and send ```^XA^WDE:*.TTF^XZ``` to show the name of all availab
 <sub>NOTE: If running this on Linux... you may need to go into Printer.py and add 
 a # in-front of self.zebra.setqueue(Q[0]) to preclude a ListIndex error</sub>
 
+<sub>NOTE-2: Sometimes python can be mean and/or have an identity crisis. If cmdprompt doesn't recognize python or pip, 
+try its other personality py. You may also need to point it into the right direction by using the -m flag...
+Example: py -m pip install zpl</sub>
+
 # Strip Alignment:
  * Strips require manual alignment prior to first print.
  1. Launch program. Type "Align" after selecting positions.
@@ -64,12 +70,14 @@ a # in-front of self.zebra.setqueue(Q[0]) to preclude a ListIndex error</sub>
  2. Utilize the line at the mouth of the printer to determine how much "drift" the printer started with.
  3. Move the flight strip into the printer in a manner that is antithical* to the drift approximated in step 2.
  4. Print another flight strip. The strips should be in place now. 
+ 
+Sometimes... the strips are just going to drift. :(
 <sub>* this wording is weird lol sorry</sub>
 
 # Commands:
- * Memoryaids - Prints several memory aids, including STOP and NO LUAW.
- * Times - Prints the current taxi times & associated callsigns.
- * Purge - Clears queue count for delay reporting
+ * Memoryaids - Prints several memory aids (ATL specific), including STOP and NO LUAW (not ATL specific <3).
+ * Times - Prints the current taxi times & associated callsigns (when EFSTS is activate).
+ * Purge - Clears queue count for delay reporting (EFSTS)
  * DROP (Callsign) - Removes cid from queue counter.
  * Recall - List all strips printed. Use recall# to print a previously printed GI message.
  * Align - Prints blank strip with singular line. Align line with mouth of printer to achieve serenity.
@@ -103,5 +111,5 @@ a # in-front of self.zebra.setqueue(Q[0]) to preclude a ListIndex error</sub>
  # Networking [WIP]:
  * This program has limited support and is in early Alpha for the Electronic Flight Strip Transfer System in a Local Area Network (LAN).
  * As of 6/14/2024, only the server may recieve data transmitted. I recommend launching the "Departure Radar" position as the server.
-    - Additionally, I recommend using ATL-GCN as the ground position if you intend on keeping track of taxi times. 
-    - ATL-LC2 will bypass the "in" scan time and only send the flight strip to departure. This is not recommended if you have a GCN position open as it will NOT delete the flight plan from the delay database. 
+    - Additionally, I recommend using ATL-GC as the ground position if you intend on keeping track of taxi times. 
+    - ATL-LC will bypass the "in" scan time and only send the flight strip to departure. This is not recommended if you have a GC position open on another computer as it will NOT delete the flight plan from the delay database. 

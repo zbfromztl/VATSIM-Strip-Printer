@@ -18,7 +18,7 @@ from DataCollector import DataCollector
 #TODO EVENTUALLY: Store times on here lol.
 
 class Network():
-    def __init__(self, user_position, control_area:str, printer:Printer, data_collector:DataCollector) -> None:
+    def __init__(self, user_position, control_area:str, printer:Printer, data_collector:DataCollector, own_server_ip='') -> None:
         self.debug_mode = False #For dev work... lol
         self.Privacy_mode = False
         #config initalization
@@ -26,6 +26,7 @@ class Network():
         self.user_position = user_position
         self.printer = printer
         self.data_collector = data_collector
+        self.own_server_ip = own_server_ip
         #Config network data.
         self.is_server_host = False
         self.network_active = False
@@ -43,7 +44,8 @@ class Network():
         self.server_ip = input("Please input the IP of the server. Leave blank if this machine is the server: ")
         self.server_ip = self.server_ip.strip()
         if self.server_ip == "":
-            self.server_ip = socket.gethostbyname(socket.getfqdn())
+            if self.own_server_ip != '': self.server_ip = self.own_server_ip
+            else: self.server_ip = socket.gethostbyname(socket.getfqdn())
             self.is_server_host = True
         if self.Privacy_mode == False: #Privacy Mode is only togglable in this file. If its DISABLED, it should show the user their IP and PORT so that other machines can connect.
             print(f"Server IP set to {self.server_ip}. Port number {self.server_port}.")
