@@ -39,7 +39,7 @@ class Main():
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         unlimited_recall = False #should it store every callsign ever printed or not?
         doATISTracking = False
-        scanner_only_mode = False
+        scanner_only_mode = False #This setting disables most settings... ideal when operating a stand-alone station.
 
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"

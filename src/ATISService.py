@@ -40,6 +40,7 @@ class ATISInfoUhhh:
         self.jsonTimer = jsonTimer
         self.AirportManager = set()
         self.ATISManager = dict()
+        self.pending_disconnect_warns = []
         #Find what airports we need to track
         for airfield in self.control_area['airports']: self.AirportManager.add(airfield) #Find out what airports we care about
 
@@ -87,13 +88,17 @@ class ATISInfoUhhh:
                     dumped_atis.append(callsign_regex)
                     self.ATISManager[connection].pop(type_logged)
                     # to_purge.append([connection][type_logged])
-        if len(dumped_atis) > 0: 
+        if len(dumped_atis) > 0 and len(self.pending_disconnect_warns) > 0:
             dumped_airports = " DISCONNECTED ATIS: "
-            for dumped in dumped_atis:
+            for dumped in self.pending_disconnect_warns.copy():
+                if dumped in dumped_atis: dumped_atis.pop(dumped)
                 dumped_airports = f'{dumped_airports} {dumped}'
+                self.pending_disconnect_warns.pop(dumped)
                 # if len(self.ATISManager[dumped])
             atis_changes.append(dumped_airports)
             # print(dumped_airports)
+        if len(dumped_atis) > 0: 
+            for dumped in dumped_atis: self.pending_disconnect_warns.append(dumped)
         for connection in self.ATISManager.copy(): #clean up ATISManager
             if len(self.ATISManager[connection])==0: self.ATISManager.pop(connection)
         # for purgin in to_purge:
