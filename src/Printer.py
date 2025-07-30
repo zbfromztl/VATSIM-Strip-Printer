@@ -241,7 +241,8 @@ class Printer:
 
     # TODO Redo formatting for positions
     def print_strip(self, pos1:str='', pos2:str='', pos2A:str='', pos3:str='', pos4A:str='', pos4B:str = '', 
-                    pos5:str='', pos6:str='', pos7:str='', pos8:str='', pos8A:str='', pos8B='', pos9:str='', pos9A:str='', pos9B:str='', pos9C:str='', pos9D:str = ''):
+                    pos5:str='', pos6:str='', pos7:str='', pos8:str='', pos8A:str='', pos8B='', pos9:str='', pos9A:str='', pos9B:str='', pos9C:str='', pos9D:str = '', edct:str=''):
+        if edct != '': edct = f'EDCT: {edct}'
         #This was self.zebra.output(alltheshithere)
         self.add_to_print_service(f"""^XA^CWS,{self.print_directory}{self.font}^XZ
                   ^XA^ASN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ
@@ -268,6 +269,7 @@ class Printer:
                   ^FB550,1,0,L^FO20,400^FD{pos9}^ASb,35^FS
                   ^FB500,1,0,L^FO95,450^FD{pos9D}^ASb,35^FS
                   ^FB500,1,0,L^FO160,450^FD{pos9A}^ASb,35^FS
+                  ^FB100,2,0,L^FO60,125^FD{edct}^ASb,35^FS ^FX EDCT line
                   ^FO0,1175^GB203,4,4^FS
                   ^PQ1,0,1,Y
                   ^XZ""")
