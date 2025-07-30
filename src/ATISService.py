@@ -85,20 +85,21 @@ class ATISInfoUhhh:
                 else: callsign_regex=f'{connection}_{atis_type[:1]}_ATIS'.strip().upper()
                 # print(f'ugh... {callsign_regex} vs {global_online_atis}')
                 if callsign_regex not in global_online_atis: 
-                    dumped_atis.append(callsign_regex)
-                    self.ATISManager[connection].pop(type_logged)
+                    if callsign_regex in self.pending_disconnect_warns.copy(): 
+                        self.ATISManager[connection].pop(type_logged) 
+                        dumped_atis.append(callsign_regex)
+                        self.pending_disconnect_warns.remove(callsign_regex)
+                    else: self.pending_disconnect_warns.append(callsign_regex)
+                    #self.ATISManager[connection].pop(type_logged)
                     # to_purge.append([connection][type_logged])
-        if len(dumped_atis) > 0 and len(self.pending_disconnect_warns) > 0:
+        if len(dumped_atis) > 0:
             dumped_airports = " DISCONNECTED ATIS: "
-            for dumped in self.pending_disconnect_warns.copy():
-                if dumped in dumped_atis: dumped_atis.pop(dumped)
+            for dumped in dumped_atis:
+                # if dumped in dumped_atis.copy(): dumped_atis.pop(dumped)
                 dumped_airports = f'{dumped_airports} {dumped}'
-                self.pending_disconnect_warns.pop(dumped)
                 # if len(self.ATISManager[dumped])
             atis_changes.append(dumped_airports)
             # print(dumped_airports)
-        if len(dumped_atis) > 0: 
-            for dumped in dumped_atis: self.pending_disconnect_warns.append(dumped)
         for connection in self.ATISManager.copy(): #clean up ATISManager
             if len(self.ATISManager[connection])==0: self.ATISManager.pop(connection)
         # for purgin in to_purge:
@@ -187,6 +188,9 @@ class ATISInfoUhhh:
                 elif content_item.startswith('A') and len(content_item)==5 and content_item[1:4].isnumeric(): atis_content['altimeter'] = content_item
                 elif content_item =='.': break
             atis_content['clouds'] = str(atis_raw[vis_pos:temp_pos]).strip()
-            atis_content['notams'] = atis_raw.split('NOTAMS...')[1].strip()
             atis_content['airport_conditions'] = atis_raw[atis_raw.find(')')+2:atis_raw.find('NOTAMS...')].strip()
-        except Exception as e2: print(f'Exception in determining ATIS content... {e2}')
+        except Exception as e2: print(f'Exception in determining ATIS content... {e2} // {atis_raw}')
+        try: atis_content['notams'] = atis_raw.split('NOTAMS...')[1].strip()
+        except: atis_content['notams'] = atis_content['notams']
+            
+        

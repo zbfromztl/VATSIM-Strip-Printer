@@ -186,7 +186,7 @@ class Printer:
                 if self.printer:  #Check to see if we want to print paper strips
                     # time.sleep(1)
                     self.print_strip(pos1=callsign, pos2=ac_type, pos3=amendment_number, pos4A=computer_id, pos4B=cid, pos2A=exit_fix, pos5=assigned_sq, pos6=departure_time, pos7=cruise_alt, pos8=departure_airport,pos9=line1, pos9D=destination, pos9A=remarks)
-                else: print(f"{callsign}, {departure_airport}, {ac_type}, {departure_time}, {cruise_alt}, {line1}, {assigned_sq}, {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {amendment_number}, {remarks}")
+                else: print(f"{callsign}, {departure_airport}, {amendment_number}, {ac_type}, {assigned_sq}, {departure_time}, {cruise_alt}, {line1},  {destination}, {enroute_time}, {cid}, {exit_fix}, {computer_id}, {remarks}")
                
                    
         elif callsign_data is not None and strip_type != "departure": #Temporary for arrival strips

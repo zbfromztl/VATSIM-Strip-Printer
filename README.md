@@ -3,7 +3,7 @@ Version: Python 3.11.3
   * WIP flight progress strips for [vZTL](https://ztlartcc.org), on the [VATSIM Network](https://vatsim.net).
   * Code Author: Simon Heck [(Simon-Heck)](https://github.com/Simon-Heck)
   * Printer Technician: Joey Costello [(JoeyTheDev1)](https://github.com/JoeyTheDev1/)
-  * Technical Advisor: [Zack B)](https://github.com/zbfromztl)
+  * Technical Operations: [Zack B)](https://github.com/zbfromztl)
 
 # In Progress:
  - [X] Electronic Flight Strip Transfer System (EFSTS) / Networking

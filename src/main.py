@@ -33,7 +33,7 @@ class Main():
         allowPrefiles = True
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
         unlimited_recall = False #Should it store every callsign ever printed or not?
-        doATISTracking = False
+        doATISTracking = True
         scanner_only_mode = False #This setting disables most settings... ideal when operating a stand-alone station like a RaspberryPi for a particular City in the Forest's live event
 
 
