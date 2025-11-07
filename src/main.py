@@ -38,7 +38,7 @@ class Main():
 
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
-        sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
+        sigmetJSON = "https://aviationweather.gov/api/data/airsigmet?format=json"
         cwasJSON = "https://api.weather.gov/aviation/cwsus/"
        
         cached_callsign_path = "./data/cached_departures_that_have_been_printed"
