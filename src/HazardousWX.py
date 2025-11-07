@@ -51,7 +51,7 @@ class WXRadio:
                 siglon.append(u["lon"])
             
             for u in i["coords"]:
-                if i["airSigmetId"] not in self.sigmet_list:
+                if i["seriesId"] not in self.sigmet_list:
                     for fieldlist in control_area:
                         try:
                             airport_lat = self.airports[fieldlist]["LAT"]
@@ -70,7 +70,7 @@ class WXRadio:
                 hazard = i["hazard"]
                 type = i["airSigmetType"]
                 rawsigmet = i["rawAirSigmet"].splitlines()
-                self.sigmet_list.append(i["airSigmetId"])
+                self.sigmet_list.append(i["seriesId"])
                 if type == "SIGMET":
                  #   for i in rawsigmet:
                  #       gi_message = f'{i}'

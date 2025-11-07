@@ -12,16 +12,11 @@ from armt import AirspaceManagement
 from network import Network
 from ATISService import ATISInfoUhhh
 
-__author__ = "Simon Heck"
+__author__ = "Simon Heck", "Zack B"
 
 class Main():
     def __init__(self) -> None:
-        acft_json_path = "./data/acft_database.json"
-        airports_path = "./data/airports.json"
-        printerpositions_path = "./data/positions.json"
-        waypoint_database = "./data/waypoint_database.json"
 
-                                  
 ####       ,ad8888ba,    ,ad8888ba,    888b      88  88888888888  88    ,ad8888ba,   88        88  88888888ba          db    888888888888  88    ,ad8888ba,    888b      88  
 ####      d8"'    `"8b  d8"'    `"8b   8888b     88  88           88   d8"'    `"8b  88        88  88      "8b        d88b        88       88   d8"'    `"8b   8888b     88  
 ####     d8'           d8'        `8b  88 `8b    88  88           88  d8'            88        88  88      ,8P       d8'`8b       88       88  d8'        `8b  88 `8b    88  
@@ -32,20 +27,25 @@ class Main():
 ####       `"Y8888Y"'    `"Y8888Y"'    88      `888  88           88    `"Y88888P"    `"Y8888Y"'   88      `8b  d8'          `8b  88       88    `"Y8888Y"'    88      `888                                                                                                                                                        
 
 
-        # font = "FLIGHTSTRIPPRINT.TTF"
-        font = "FLI000.FNT" # Command for Zebra to figure out what fonts are installed: ^XA^HWE:*.*^XZ
+        font = "FLI000.FNT" # The command for Zebra to figure out what fonts are installed is: ^XA^HWE:*.*^XZ
         allowNetwork = False
+        own_server_ip = '' #Use this when using a vlan (such as Himachi or TailScale). 
         allowPrefiles = True
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
-        unlimited_recall = False #should it store every callsign ever printed or not?
-        doATISTracking = False
+        unlimited_recall = False #Should it store every callsign ever printed or not?
+        doATISTracking = True
+        scanner_only_mode = False #This setting disables most settings... ideal when operating a stand-alone station like a RaspberryPi for a particular City in the Forest's live event
 
 
         json_url = "https://data.vatsim.net/v3/vatsim-data.json"
-        sigmetJSON = "https://aviationweather.gov/cgi-bin/data/airsigmet.php?format=json"
+        sigmetJSON = "https://aviationweather.gov/api/data/airsigmet?format=json"
         cwasJSON = "https://api.weather.gov/aviation/cwsus/"
        
         cached_callsign_path = "./data/cached_departures_that_have_been_printed"
+        acft_json_path = "./data/acft_database.json"
+        airports_path = "./data/airports.json"
+        printerpositions_path = "./data/positions.json"
+        waypoint_database = "./data/waypoint_database.json"
 
         # TODO: Handle empty pickle file
 
@@ -136,7 +136,8 @@ class Main():
         while(True):
             try:
                 do_we_print = False
-                if control_area['auto_Print_Strips'] or do_we_network: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
+                if scanner_only_mode: do_we_print = "scanner"
+                elif control_area['auto_Print_Strips'] or do_we_network: #If the position is configured to NOT auto-print strips... these settings are useless... so might as well skip 'em.
                     do_we_print = bool(int(input("Do you want to print paper flight progress strips? Reply with a '1' for yes, or '0' for no: ")))
                     response = input("Do you want to print eligble aircraft already present in the area of jurisdiction? Reply with a '1' for yes, '0' for no: ")
                     print_all_departures = bool(int(response))
@@ -144,7 +145,7 @@ class Main():
                     #     response = input(f"This will possibly print up to {len(current_callsigns_cached)} strips. Reply '1' for yes, '0' for no: ")
                     #     print_all_departures = bool(int(response))
                     
-                if(print_all_departures):
+                if(print_all_departures) and scanner_only_mode == False:
                     response = input(f"Do you want to clear the {len(current_callsigns_cached)} cached strips? Reply '1' for yes, '0' for no: ")
                     current_callsigns_cached = []
                     clear_cache = bool(int(response))
@@ -157,7 +158,7 @@ class Main():
         # --- AllowPrefiles ---
         handle_prefiles = False
         if allowPrefiles:
-            if (control_area['stripType'] == "departure" or control_area['stripType'] == "both") and control_area['auto_Print_Strips']: #Only ask if this position is eligble
+            if (control_area['stripType'] == "departure" or control_area['stripType'] == "both") and control_area['auto_Print_Strips'] and scanner_only_mode == False: #Only ask if this position is eligble
                 try:
                     response = input("Do you want to print pre-filed flight plans? Reply with a '1' for yes, '0' for no: ")
                     handle_prefiles = bool(int(response))
@@ -169,7 +170,7 @@ class Main():
         
         printer = Printer(acft_dict, do_we_print, waypoint_db, font, recall_limit, unlimited_recall)
         data_collector = DataCollector(handle_prefiles, json_url, control_area, printer, printed_callsigns, cached_callsign_path, printer_positions, airports)
-        server_manager = Network(user_position, control_area, printer, data_collector)
+        server_manager = Network(user_position, control_area, printer, data_collector, own_server_ip)
         efsts = Scanner(control_area, sigmetJSON, printer_positions, airports, data_collector, server_manager, do_we_network)
         callsign_requester = CallsignRequester(printer, data_collector, control_area, efsts)
         json_refresh = JSONRefreshTimer(data_collector, json_url)
@@ -205,17 +206,18 @@ class Main():
         # server_manager.use_server()
         
 
+        enablewxradio = False
+        if scanner_only_mode == False:
+            try:
+                    print("Would you like Hazardous Weather Advisories?")
+                    enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
+            except ValueError: print('Reply "1" for yes, and "0" for no: ')
 
-        try:
-            print("Would you like Hazardous Weather Advisories?")
-            enablewxradio = bool(int(input('Reply "1" for yes, and "0" for no: ')))
-        except ValueError: print('Reply "1" for yes, and "0" for no: ')
+            #start printing strips while customer decides whether or not they want to sync the data.
+            automated_strip_printing.start()
 
-        #start printing strips while customer decides whether or not they want to sync the data.
-        automated_strip_printing.start()
-
-        # start other threads
-        JSON_timer.start()
+            # start other threads
+            JSON_timer.start()
         type_of_position = control_area["type"].upper()
         if type_of_position != "TMU": user_input.start()
         else: airspace.start()

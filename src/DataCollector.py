@@ -45,13 +45,11 @@ class DataCollector:
                 else: self.auto_ban_manager.update({pilot_callsign:1})
             new_pilot_route:str = new_pilot_data_associated_with_callsign['flight_plan']['route']
             if pilot_callsign in self.dumped_flights: self.dumped_flights.remove(pilot_callsign)
-            if '+' in new_pilot_route:
-                new_pilot_route = new_pilot_route.replace('+', '')
+            if '+' in new_pilot_route: new_pilot_route = new_pilot_route.replace('+', '')
             
             if pilot_callsign in self.callsign_list:
                 current_pilot_route:str = self.callsign_list[pilot_callsign]['flight_plan']['route']
-                if '+' in current_pilot_route:
-                    current_pilot_route = current_pilot_route.replace('+', '')
+                if '+' in current_pilot_route: current_pilot_route = current_pilot_route.replace('+', '')
 
                 if new_pilot_route != current_pilot_route and self.control_area['auto_Print_Strips']:
                     # pilot has received a reroute
@@ -72,10 +70,8 @@ class DataCollector:
                     lookfor = self.control_area['stripType']
                     if str(lookfor) == 'both':
                         fp_data = callsign_table.get(callsign_to_print)
-                        if fp_data['flight_plan']['departure'] in tuple(self.control_area['airports']):
-                            lookfor = 'departure'
-                        elif fp_data['flight_plan']['arrival'] in tuple(self.control_area['airports']):
-                            lookfor = 'arrival'
+                        if fp_data['flight_plan']['departure'] in tuple(self.control_area['airports']): lookfor = 'departure'
+                        elif fp_data['flight_plan']['arrival'] in tuple(self.control_area['airports']): lookfor = 'arrival'
 
                     self.printer.print_callsign_data(callsign_table.get(callsign_to_print), callsign_to_print, self.control_area, lookfor)
                     self.printed_callsigns.append(callsign_to_print)
@@ -87,10 +83,8 @@ class DataCollector:
             time.sleep(1)
 
     def get_callsign_data(self, callsign) -> dict:
-        if callsign not in self.callsign_list:
-            return None
-        else:
-            return self.callsign_list.get(callsign)
+        if callsign not in self.callsign_list: return None
+        else: return self.callsign_list.get(callsign)
     
     def in_geographical_region_wip(self, control_area:str, airport:str, airplane_lat_long:tuple) -> bool:
         airports_dict = self.airports['airfields']
@@ -131,16 +125,13 @@ class DataCollector:
             # pilot at index i information
             current_pilot = connected_pilots[i]
             #If they're connected, remove the callsign from the "disconnected" list
-            if current_pilot['callsign'] in disconnected:
-                disconnected.remove(current_pilot['callsign'].upper())
+            if current_pilot['callsign'] in disconnected: disconnected.remove(current_pilot['callsign'].upper())
             
             try:
                 if str(lookfor) == 'both':
                     #print(f"checking to see if {current_pilot['flight_plan']['departure']} is in {self.control_area['airports']}")
-                    if current_pilot['flight_plan']['departure'] in tuple(self.control_area['airports']):
-                        lookfor = 'departure'
-                    elif current_pilot['flight_plan']['arrival'] in tuple(self.control_area['airports']):
-                        lookfor = 'arrival'
+                    if current_pilot['flight_plan']['departure'] in tuple(self.control_area['airports']): lookfor = 'departure'
+                    elif current_pilot['flight_plan']['arrival'] in tuple(self.control_area['airports']): lookfor = 'arrival'
                 if lookfor != 'both':
                     lat_long_tuple = (current_pilot['latitude'], current_pilot['longitude'])
                     pilot_callsign = current_pilot['callsign'].upper()
@@ -150,16 +141,13 @@ class DataCollector:
                         # to access, use: self.callsign_list.get(**callsign**)
                         # that will return the portion of the JSON with all of the pilot's info from when the system added them(flightplan, CID, etc.)
                         if lookfor == 'arrival' and current_pilot['groundspeed'] == 0: self.remove_callsign_from_lists(pilot_callsign) #This *should* remove arrival strips that have landed...
-                        else: 
-                            self.add_callsign_to_dep_list(pilot_callsign, current_pilot, lookfor)
+                        else: self.add_callsign_to_dep_list(pilot_callsign, current_pilot, lookfor)
 
                     elif self.requires_removal(pilot_callsign, pilot_departure_airport, self.control_area, lat_long_tuple):
                         if pilot_callsign not in self.banned_callsigns: self.remove_callsign_from_lists(pilot_callsign)
 
-            except TypeError as e1:
-                pass        
-            except Exception as e2:
-                print(f"EXCEPTION in DATA COLLECTOR: {e2}")
+            except TypeError as e1: pass        
+            except Exception as e2: print(f"EXCEPTION in DATA COLLECTOR: {e2}")
 
         #Print aircraft that pre-file since the PDC is gonna be available anyways. 10/23/2024 ^KK
         if self.handle_prefiles: #Are we printing prefiles?
@@ -193,7 +181,7 @@ class DataCollector:
                 removed_route = self.get_removed_route(callsign_flight_plan, callsign_departure, callsign_flightrules)
                 removed_route = removed_route.replace(f"{callsign_departure} ","")
                 self.remove_callsign_from_lists(user)
-                print(f"{str(time.gmtime().tm_hour).zfill(2)}{str(time.gmtime().tm_min).zfill(2)}Z: FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
+                if len(callsign_departure) == 4: print(f"{time.strftime('%H%M',time.gmtime())}Z: FLIGHT PLAN FOR {user}/({removed_route}) HAS TIMED OUT.")
                 self.dumped_flights.add(user)
             except Exception as e2:
                 print(f"Exception removing flight plan: {e2}")
@@ -212,8 +200,7 @@ class DataCollector:
         try:
             if callsign_to_remove in self.callsign_list: self.callsign_list.pop(callsign_to_remove) #The "if" statement here is so that it doesn't error if the prog is launched while 
             if callsign_to_remove in self.printed_callsigns: self.printed_callsigns.remove(callsign_to_remove)
-        except:
-            print(f'Error removing {callsign_to_remove}: not found in stored lists.')
+        except: print(f'Error removing {callsign_to_remove}: not found in stored lists.')
 
     def update_json(self, json_url):
         r = requests.get(json_url)
@@ -231,6 +218,5 @@ class DataCollector:
         try: 
             if flightplan.isalnum: removed_route = self.printer.format_flightplan(flightplan, departure, flightrules)
             else: removed_route = "ERROR PARSING ROUTE"
-        except:
-            print(f"Error determining route for dropped flight plan: {flightplan} from {departure}")
+        except: print(f"Error determining route for dropped flight plan: {flightplan} from {departure}")
         return removed_route
