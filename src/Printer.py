@@ -115,7 +115,8 @@ class Printer:
         if requested_callsign == "" or None:
             # Print blank flight strips
             if self.printer: #Check to see if we want to print paper strips
-                self.add_to_print_service(f"^XA^CWK,{self.print_directory}{self.font}^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB140,1,0,L^FO5,1470^FD^AKb,35,35^FS^FB200,1,0,L^FO60,1400^FD^AKb,35,35^FS^FO130,1530^FD^FS^FB200,1,0,R^FO45,1320^FD^AKb,80,80^FS^FO5,1200^FD^AKb,35,35^FS^FO80,1190^FD^AKb,35,35^FS^FO145,1220^FD^AKb,35,35^FS^FO5,1050^FD^AKb,35,35^FS^FB500,1,0,L^FO5,450^FD^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
+                self.print_strip()
+                # self.add_to_print_service(f"^XA^CWK,{self.print_directory}{self.font}^XZ^XA^AKN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ^XA^MMT^PW203^LL1624^LS-20^FO0,1297^GB203,4,4^FS^FO0,972^GB203,4,4^FS^FO0,363^GB203,4,4^FS^FO0,242^GB203,4,4^FS^FO0,120^GB203,4,4^FS^FO66,0^GB4,365,4^FS^FO133,0^GB4,365,4^FS^FO133,1177^GB4,122,4^FS^FO66,1177^GB4,122,4^FS^FB140,1,0,L^FO5,1470^FD^AKb,35,35^FS^FB200,1,0,L^FO60,1400^FD^AKb,35,35^FS^FO130,1530^FD^FS^FB200,1,0,R^FO45,1320^FD^AKb,80,80^FS^FO5,1200^FD^AKb,35,35^FS^FO80,1190^FD^AKb,35,35^FS^FO145,1220^FD^AKb,35,35^FS^FO5,1050^FD^AKb,35,35^FS^FB500,1,0,L^FO5,450^FD^AKb,35,35^FS^FB500,1,0,L^FO70,450^FD^AKb,35,35^FS^^FB500,1,0,L^FO135,450^FD^AKb,35,35^FS^FO0,1175^GB203,4,4^FS^PQ1,0,1,Y^XZ")
             else: print("blank")
         elif requested_callsign == "ALIGN":
             # Print flight strip to align correctly
@@ -247,15 +248,15 @@ class Printer:
         self.add_to_print_service(f"""^XA^CWS,{self.print_directory}{self.font}^XZ
                   ^XA^ASN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ
                   ^XA^MMT^PW203^LL1624^LS-20
-                  ^FO0,1297^GB203,4,4^FS
-                  ^FO0,972^GB203,4,4^FS
-                  ^FO0,363^GB203,4,4^FS
-                  ^FO0,242^GB203,4,4^FS
-                  ^FO0,120^GB203,4,4^FS
-                  ^FO55,0^GB4,365,4^FS
-                  ^FO123,0^GB4,365,4^FS
-                  ^FO123,1177^GB4,122,4^FS
-                  ^FO55,1177^GB4,122,4^FS
+                  ^FO0,1297^GB203,1,1^FS
+                  ^FO0,972^GB203,1,1^FS
+                  ^FO0,363^GB203,1,1^FS
+                  ^FO0,242^GB203,1,1^FS
+                  ^FO0,120^GB203,1,1^FS
+                  ^FO55,0^GB1,363,1^FS
+                  ^FO123,0^GB1,363,1^FS
+                  ^FO123,1175^GB1,122,1^FS
+                  ^FO55,1175^GB1,122,1^FS
                   ^FB250,1,0,L^FO20,1350^FD{pos1}^ASb,35^FS
                   ^FB200,1,0,L^FO95,1400^FD{pos2}^ASb,35^FS
                   ^FB200,1,0,L^FO55,1325^FD{pos3}^ASb,20^FS
@@ -270,7 +271,7 @@ class Printer:
                   ^FB500,1,0,L^FO95,450^FD{pos9D}^ASb,35^FS
                   ^FB500,1,0,L^FO160,450^FD{pos9A}^ASb,35^FS
                   ^FB100,2,0,L^FO60,125^FD{edct}^ASb,35^FS ^FX EDCT line
-                  ^FO0,1175^GB203,4,4^FS
+                  ^FO0,1175^GB203,1,1^FS
                   ^PQ1,0,1,Y
                   ^XZ""")
 
@@ -281,7 +282,8 @@ class Printer:
             message = message[max_message_length:]
             # time.sleep(1)
 
-    def print_gi_message(self, message, asb='55'): #Name change to allow for print_gi_messages (original) to process shortening without disrupting other places in program...
+    def print_gi_message(self, message, asb='35'): #Name change to allow for print_gi_messages (original) to process shortening without disrupting other places in program...
+        #Changed asb from 55 to 35 on 8/7 in response to errors observed by DD...
         message = message.upper()
         self.recall_inator(message, "update", "gi")
         if self.printer: #Check to see if we want to print paper strips
