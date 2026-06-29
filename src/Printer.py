@@ -259,7 +259,7 @@ class Printer:
                   ^FO55,1175^GB1,122,1^FS
                   ^FB250,1,0,L^FO20,1350^FD{pos1}^ASb,35^FS
                   ^FB200,1,0,L^FO95,1400^FD{pos2}^ASb,35^FS
-                  ^FB200,1,0,L^FO55,1325^FD{pos3}^ASb,20^FS
+                  ^FB200,1,0,L^FO55,1400^FD{pos3}^ASb,20^FS
                   ^FO160,1540^FD{pos4A}^ASb,35^FS
                   {pos4B}^FS ^FX THIS IS THE BARCODE FOR DEPARTURE STRIPS!
                   ^FB200,1,0,R^ASb,45,45^FO75,1320^FD{pos2A}^ASb,103^FS
