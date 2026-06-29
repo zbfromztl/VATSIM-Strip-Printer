@@ -104,6 +104,9 @@ class Network():
 
     def connect_to_server(self):
         if self.debug_mode: print("Activating client -> server module.")
+        if self.network_active:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.network_active = False
         self.socket.connect((self.server_ip, self.server_port)) #Connect to server
         self.socket.setblocking(False)                        #Set connection to non-blocking state
         printer_name = self.user_position.encode("utf-8")               #On initial contact, format name to server "who" we are
@@ -182,7 +185,7 @@ class Network():
     def send_outbound(self, callsign):
         try:
             if callsign:
-                print(f"NETWORK MODULE is attempting to send {callsign} to server.")
+                print(f"Transferring data for {callsign}.")
                 callsign = callsign.encode('utf-8')
                 if self.debug_mode: print("Callsign encoded.")
                 callsign_header = f"{len(callsign):<{8}}".encode('utf-8')
@@ -190,16 +193,12 @@ class Network():
                 self.socket.send(callsign_header + callsign)
                 if self.debug_mode: print("sent successfullyyyyy")
         except Exception as e:
-            print(f"Exception in NETWORK: {e}")
+            print(f"Error in connection: {e}")
             if callsign:
                 self.connect_to_server()
-                callsign = callsign.encode('utf-8')
-                if self.debug_mode: print("Callsign encoded.")
-                callsign_header = f"{len(callsign):<{self.header_len}}".encode('utf-8')
-                if self.debug_mode: print("Callsign Header encoded.")
                 self.socket.send(callsign_header + callsign)
-                print("sent successfullyyyyy")
-                self.socket.close()
+                print("Sent successfully.")
+                #self.socket.close()
 
     # def recieve_strips(self):
     #     while self.network_active:                           #Let us break it off if we want to eventually lol
