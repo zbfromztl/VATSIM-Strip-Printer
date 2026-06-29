@@ -575,7 +575,7 @@ class Printer:
         except: return transition
 
     def handle_strip_amendment_math(self,amendment_number):
-        if amendment_number < 1: amendment_number = 0
+        if amendment_number < 2: amendment_number = 0
         while amendment_number > 9: amendment_number = amendment_number - 9
         amendment_number = str(amendment_number)
         if amendment_number == '0': amendment_number = ""
