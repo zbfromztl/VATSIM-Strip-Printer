@@ -162,7 +162,7 @@ class Printer:
                 cid = f"^FO120,1340^BCB,70,N,N,N,A^FD{callsign_data['cid']}"
             exit_fix = self.match_ATL_exit_fix(flightplan)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-1)
+            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-2)
 
             line1 = flightplan #Logic for "route" section of flight plan. If the route is not long enough to truncate, keep 'er all together.
             if line1[-1:] != "." and len(line1) < 24: 
@@ -205,7 +205,7 @@ class Printer:
             remarks=callsign_data['flight_plan']['remarks']
             remarks = self.format_remarks(callsign_data['flight_plan']['remarks'], 15)
             computer_id = self.generate_id(callsign_data['flight_plan']['remarks'])
-            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-1)
+            amendment_number = self.handle_strip_amendment_math(int(callsign_data['flight_plan']['revision_id'])-2)
 
             aircraft_position = callsign_data["latitude"], callsign_data["longitude"]
             # eta = self.calculate_eta(aircraft_position, callsign_data["groundspeed"], star)
@@ -575,7 +575,7 @@ class Printer:
         except: return transition
 
     def handle_strip_amendment_math(self,amendment_number):
-        if amendment_number < 2: amendment_number = 0
+        if amendment_number < 1: amendment_number = 0
         while amendment_number > 9: amendment_number = amendment_number - 9
         amendment_number = str(amendment_number)
         if amendment_number == '0': amendment_number = ""
