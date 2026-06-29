@@ -28,7 +28,7 @@ class Main():
 
 
         font = "FLI000.FNT" # The command for Zebra to figure out what fonts are installed is: ^XA^HWE:*.*^XZ
-        allowNetwork = True
+        allowNetwork = False
         own_server_ip = '' #Use this when using a vlan (such as Himachi or TailScale). 
         allowPrefiles = True
         recall_limit = 10 #If unlimited_recall is OFF, what is the max number of strips it should store?
