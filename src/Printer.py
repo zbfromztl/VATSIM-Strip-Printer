@@ -248,15 +248,15 @@ class Printer:
         self.add_to_print_service(f"""^XA^CWS,{self.print_directory}{self.font}^XZ
                   ^XA^ASN,50,70^CFC,40,40~TA000~JSN^LT0^MNN^MTT^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ
                   ^XA^MMT^PW203^LL1624^LS-20
-                  ^FO0,1297^GB203,1,1^FS
-                  ^FO0,972^GB203,1,1^FS
-                  ^FO0,363^GB203,1,1^FS
-                  ^FO0,242^GB203,1,1^FS
-                  ^FO0,120^GB203,1,1^FS
-                  ^FO55,0^GB1,363,1^FS
-                  ^FO123,0^GB1,363,1^FS
-                  ^FO123,1175^GB1,122,1^FS
-                  ^FO55,1175^GB1,122,1^FS
+                  ^FO0,1297^GB203,1,2^FS
+                  ^FO0,972^GB203,1,2^FS
+                  ^FO0,363^GB203,1,2^FS
+                  ^FO0,242^GB203,1,2^FS
+                  ^FO0,120^GB203,1,2^FS
+                  ^FO55,0^GB1,363,2^FS
+                  ^FO123,0^GB1,363,2^FS
+                  ^FO123,1175^GB1,122,2^FS
+                  ^FO55,1175^GB1,122,2^FS
                   ^FB250,1,0,L^FO20,1350^FD{pos1}^ASb,35^FS
                   ^FB200,1,0,L^FO95,1400^FD{pos2}^ASb,35^FS
                   ^FB200,1,0,L^FO55,1400^FD{pos3}^ASb,20^FS
@@ -271,7 +271,7 @@ class Printer:
                   ^FB500,1,0,L^FO95,450^FD{pos9D}^ASb,35^FS
                   ^FB500,1,0,L^FO160,450^FD{pos9A}^ASb,35^FS
                   ^FB100,2,0,L^FO60,125^FD{edct}^ASb,35^FS ^FX EDCT line
-                  ^FO0,1175^GB203,1,1^FS
+                  ^FO0,1175^GB203,1,2^FS
                   ^PQ1,0,1,Y
                   ^XZ""")
 
